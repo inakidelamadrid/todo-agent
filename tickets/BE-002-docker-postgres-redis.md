@@ -1,8 +1,8 @@
 # BE-002: Docker setup for Postgres and Redis, managed with `make`
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-002-docker-postgres-redis`; not committed — awaiting user approval)
 - **Workspace:** backend
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-001 (FastAPI scaffold in `api/`)
 - **Public endpoint?** no new endpoints
 
@@ -91,17 +91,34 @@ Add a "Databases" section to `api/README.md` covering:
 
 ## Acceptance criteria
 
-- [ ] The agent stopped before setup, told the human exactly where and how to add credentials (`.env.db` at the repo root), and waited for confirmation.
-- [ ] `make db-up` fails with a helpful message when `.env.db` is missing or still has `change-me` passwords.
-- [ ] After the human fills in `.env.db`, `make db-up` starts Postgres and Redis and both report **healthy** in `make db-status`.
-- [ ] `make db-psql` connects. `make db-redis-cli` connects, and `PING` returns `PONG` only with the password.
-- [ ] Data survives `make db-down` + `make db-up`. `make db-reset` asks for confirmation and then wipes it.
-- [ ] Ports listen on `127.0.0.1` only. Images are pinned to exact versions.
-- [ ] No credential appears in any committed file, in command output or in the ticket log. `.env.db` and `backups/` are gitignored.
-- [ ] BE-001's tests still pass: `pytest -n auto` from `api/`.
-- [ ] **Final handoff:** the agent ends by giving the human the list of `make` commands, with a one-line description of each, ready to copy.
-- [ ] Nothing is committed or pushed without asking the user first.
+- [x] The agent stopped before setup, told the human exactly where and how to add credentials (`.env.db` at the repo root), and waited for confirmation.
+- [x] `make db-up` fails with a helpful message when `.env.db` is missing or still has `change-me` passwords.
+- [x] After the human fills in `.env.db`, `make db-up` starts Postgres and Redis and both report **healthy** in `make db-status`.
+- [x] `make db-psql` connects. `make db-redis-cli` connects, and `PING` returns `PONG` only with the password.
+- [x] Data survives `make db-down` + `make db-up`. `make db-reset` asks for confirmation and then wipes it.
+- [x] Ports listen on `127.0.0.1` only. Images are pinned to exact versions.
+- [x] No credential appears in any committed file, in command output or in the ticket log. `.env.db` and `backups/` are gitignored.
+- [x] BE-001's tests still pass: `pytest -n auto` from `api/`.
+- [x] **Final handoff:** the agent ends by giving the human the list of `make` commands, with a one-line description of each, ready to copy.
+- [x] Nothing is committed or pushed without asking the user first.
 
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here. Never log credentials.
+
+- Branch `idelamadrid/BE-002-docker-postgres-redis` from up-to-date `main`.
+- Created `docker-compose.yml` (pinned `postgres:17.12-alpine3.24`, `redis:7.4.12-alpine3.22`; ports bound to `127.0.0.1`; named volumes `postgres_data`/`redis_data`; healthchecks via `pg_isready` and authenticated `redis-cli ping`; `restart: unless-stopped`; project name `todo-agent`).
+- Decision: Redis `--requirepass` reads `$REDIS_PASSWORD` from container env at startup (`sh -c`), so the password never appears in `docker-compose.yml` or `docker compose config` output. Same for the Redis healthcheck (`REDISCLI_AUTH`).
+- Created `Makefile` with all `db-*` targets; every target passes `--env-file .env.db`; passwords never printed (silent `@` recipes; auth via in-container env vars). `db-reset` requires typing `reset`.
+- Guard `check-env` blocks `db-up` when: `.env.db` missing, either password still `change-me`, or empty. All three rejections verified (missing-file rejection in repo; placeholder rejections in a scratch dir — the agent never creates the repo's `.env.db`).
+- `docker compose config` validates cleanly (scratch dir with placeholder env).
+- `.env.db` and `backups/` added to root `.gitignore`. No credential written to any file, output, or this log.
+- **Paused before any image pull / `db-up`** for the human credentials step, per ticket. Pending verification after confirmation: healthy start, psql/redis-cli connectivity, persistence, then BE-001 tests re-run.
+- Human confirmed credentials (passwords never shared with the agent). Full verification completed:
+  - `make db-up` → both containers pulled, started, **healthy** (compose `--wait`); `db-status` shows ports bound to `127.0.0.1` only.
+  - `psql` connects; row written. Unauthenticated `redis-cli ping` → `NOAUTH`; authenticated → `PONG`.
+  - Row + Redis key **survived** `db-down` + `db-up`.
+  - `make db-backup` wrote `backups/<timestamp>.sql` (gitignored).
+  - `make db-reset` **aborted** on wrong input, wiped containers+volumes on typed `reset`; test data confirmed gone; fresh `db-up` healthy again.
+  - BE-001 suite: 14 passed via `pytest -n auto`.
+- Docker Desktop was not running; agent started it (`open -a Docker`) before setup.
