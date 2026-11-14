@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/barlow/400.css";
+@import "@fontsource/barlow/500.css";
+@import "@fontsource/barlow/600.css";
+@import "@fontsource/barlow-condensed/500.css";
+@import "@fontsource/barlow-condensed/600.css";
+
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) { @slot; }
+  }
+  &:where(:root[data-theme="dark"] *) { @slot; }
+}
+
+@theme inline {
+    --font-heading: 'Barlow Condensed', 'Barlow', sans-serif;
+    --font-display: 'Barlow Condensed', 'Barlow', sans-serif;
+    --color-rail: var(--rail);
+    --color-rail-foreground: var(--rail-foreground);
+    --color-line-utilities: var(--line-utilities);
+    --color-line-telecom: var(--line-telecom);
+    --color-line-streaming: var(--line-streaming);
+    --color-line-software: var(--line-software);
+    --color-overdue: var(--overdue);
+    --color-due-soon: var(--due-soon);
+    --color-paid: var(--paid);
+    --color-station: var(--station);
+    --font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Midnight transit: porcelain light theme, midnight enamel dark theme. */
+:root {
+    --radius: 0.5rem;
+    --background: #EEF1F6;
+    --foreground: #0B1230;
+    --card: #FFFFFF;
+    --card-foreground: #0B1230;
+    --popover: #FFFFFF;
+    --popover-foreground: #0B1230;
+    --primary: #D01A29;
+    --primary-foreground: #FFFFFF;
+    --secondary: #E3E8F1;
+    --secondary-foreground: #0B1230;
+    --muted: #E3E8F1;
+    --muted-foreground: #4A5675;
+    --accent: #E3E8F1;
+    --accent-foreground: #0B1230;
+    --destructive: #B3141F;
+    --border: #D3D9E6;
+    --input: #C3CBDC;
+    --ring: #1E5BFF;
+    --rail: #0B1230;
+    --rail-foreground: #F2F4F7;
+    --line-utilities: #C28400;
+    --line-telecom: #1E5BFF;
+    --line-streaming: #E21D2D;
+    --line-software: #1E9E45;
+    --overdue: #B3141F;
+    --due-soon: #8A5A00;
+    --paid: #17803A;
+    --station: #0B1230;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0B1230;
+    --foreground: #F2F4F7;
+    --card: #08102A;
+    --card-foreground: #F2F4F7;
+    --popover: #132050;
+    --popover-foreground: #F2F4F7;
+    --primary: #E21D2D;
+    --primary-foreground: #FFFFFF;
+    --secondary: #1A2858;
+    --secondary-foreground: #F2F4F7;
+    --muted: #1A2858;
+    --muted-foreground: #A9B6DA;
+    --accent: #1A2858;
+    --accent-foreground: #F2F4F7;
+    --destructive: #FF6B72;
+    --border: rgb(242 244 247 / 0.22);
+    --input: #2C417C;
+    --ring: #6E95FF;
+    --rail: #08102A;
+    --rail-foreground: #F2F4F7;
+    --line-utilities: #FFC20E;
+    --line-telecom: #3B74FF;
+    --line-streaming: #F0323F;
+    --line-software: #2BB65A;
+    --overdue: #FF7A80;
+    --due-soon: #FFC20E;
+    --paid: #5DD98A;
+    --station: #F2F4F7;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --background: #0B1230;
+  --foreground: #F2F4F7;
+  --card: #08102A;
+  --card-foreground: #F2F4F7;
+  --popover: #132050;
+  --popover-foreground: #F2F4F7;
+  --primary: #E21D2D;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1A2858;
+  --secondary-foreground: #F2F4F7;
+  --muted: #1A2858;
+  --muted-foreground: #A9B6DA;
+  --accent: #1A2858;
+  --accent-foreground: #F2F4F7;
+  --destructive: #FF6B72;
+  --border: rgb(242 244 247 / 0.22);
+  --input: #2C417C;
+  --ring: #6E95FF;
+  --rail: #08102A;
+  --rail-foreground: #F2F4F7;
+  --line-utilities: #FFC20E;
+  --line-telecom: #3B74FF;
+  --line-streaming: #F0323F;
+  --line-software: #2BB65A;
+  --overdue: #FF7A80;
+  --due-soon: #FFC20E;
+  --paid: #5DD98A;
+  --station: #F2F4F7;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    font-feature-settings: "tnum" 0;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--line-telecom) 45%, transparent);
+    color: var(--foreground);
+  }
+  * {
+    scrollbar-color: var(--input) transparent;
+    scrollbar-width: thin;
+  }
+  input {
+    caret-color: var(--primary);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility label-caps {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Overdue stations breathe once every two seconds; still under reduced motion. */
+@keyframes station-pulse {
+  0% { transform: scale(0.7); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.station-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: station-pulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .station-pulse { animation: none; opacity: 0.6; }
+}

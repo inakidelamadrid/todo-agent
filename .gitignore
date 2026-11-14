@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+# Per-tool agent hook configs written by the impeccable installer (machine-specific)
+.codex/
+.cursor/
+.gemini/
+# Impeccable runtime cache and downloaded catalog reference images
+.impeccable/hook.cache.json
+.impeccable/reference/

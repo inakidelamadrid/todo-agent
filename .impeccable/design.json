@@ -1,0 +1,738 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-14T22:02:04+00:00",
+  "title": "Design System: todo-agent",
+  "extensions": {
+    "colorMeta": {
+      "midnight-enamel": {
+        "role": "neutral",
+        "displayName": "Midnight Enamel",
+        "canonical": "#0B1230",
+        "tonalRamp": [
+          "oklch(15% 0.012 270)",
+          "oklch(25% 0.036 270)",
+          "oklch(35% 0.060 270)",
+          "oklch(48% 0.060 270)",
+          "oklch(60% 0.060 270)",
+          "oklch(72% 0.060 270)",
+          "oklch(84% 0.039 270)",
+          "oklch(95% 0.012 270)"
+        ]
+      },
+      "midnight-panel": {
+        "role": "neutral",
+        "displayName": "Midnight Panel",
+        "canonical": "#08102A",
+        "tonalRamp": [
+          "oklch(15% 0.011 268)",
+          "oklch(25% 0.033 268)",
+          "oklch(35% 0.054 268)",
+          "oklch(48% 0.054 268)",
+          "oklch(60% 0.054 268)",
+          "oklch(72% 0.054 268)",
+          "oklch(84% 0.035 268)",
+          "oklch(95% 0.011 268)"
+        ]
+      },
+      "midnight-popover": {
+        "role": "neutral",
+        "displayName": "Midnight Popover",
+        "canonical": "#132050",
+        "tonalRamp": [
+          "oklch(15% 0.018 268)",
+          "oklch(25% 0.054 268)",
+          "oklch(35% 0.090 268)",
+          "oklch(48% 0.090 268)",
+          "oklch(60% 0.090 268)",
+          "oklch(72% 0.090 268)",
+          "oklch(84% 0.057 268)",
+          "oklch(95% 0.018 268)"
+        ]
+      },
+      "midnight-muted": {
+        "role": "neutral",
+        "displayName": "Midnight Muted",
+        "canonical": "#1A2858",
+        "tonalRamp": [
+          "oklch(15% 0.018 268)",
+          "oklch(25% 0.053 268)",
+          "oklch(35% 0.088 268)",
+          "oklch(48% 0.088 268)",
+          "oklch(60% 0.088 268)",
+          "oklch(72% 0.088 268)",
+          "oklch(84% 0.057 268)",
+          "oklch(95% 0.018 268)"
+        ]
+      },
+      "midnight-input": {
+        "role": "neutral",
+        "displayName": "Midnight Input",
+        "canonical": "#2C417C",
+        "tonalRamp": [
+          "oklch(15% 0.021 267)",
+          "oklch(25% 0.062 267)",
+          "oklch(35% 0.103 267)",
+          "oklch(48% 0.103 267)",
+          "oklch(60% 0.103 267)",
+          "oklch(72% 0.103 267)",
+          "oklch(84% 0.066 267)",
+          "oklch(95% 0.021 267)"
+        ]
+      },
+      "porcelain-ink": {
+        "role": "neutral",
+        "displayName": "Porcelain Ink",
+        "canonical": "#F2F4F7",
+        "tonalRamp": [
+          "oklch(15% 0.001 258)",
+          "oklch(25% 0.003 258)",
+          "oklch(35% 0.005 258)",
+          "oklch(48% 0.005 258)",
+          "oklch(60% 0.005 258)",
+          "oklch(72% 0.005 258)",
+          "oklch(84% 0.003 258)",
+          "oklch(95% 0.001 258)"
+        ]
+      },
+      "midnight-muted-ink": {
+        "role": "neutral",
+        "displayName": "Midnight Muted Ink",
+        "canonical": "#A9B6DA",
+        "tonalRamp": [
+          "oklch(15% 0.011 270)",
+          "oklch(25% 0.032 270)",
+          "oklch(35% 0.053 270)",
+          "oklch(48% 0.053 270)",
+          "oklch(60% 0.053 270)",
+          "oklch(72% 0.053 270)",
+          "oklch(84% 0.034 270)",
+          "oklch(95% 0.011 270)"
+        ]
+      },
+      "midnight-border": {
+        "role": "neutral",
+        "displayName": "Midnight Border",
+        "canonical": "rgb(242 244 247 / 0.22)",
+        "tonalRamp": [
+          "oklch(15% 0.001 258)",
+          "oklch(25% 0.003 258)",
+          "oklch(35% 0.005 258)",
+          "oklch(48% 0.005 258)",
+          "oklch(60% 0.005 258)",
+          "oklch(72% 0.005 258)",
+          "oklch(84% 0.003 258)",
+          "oklch(95% 0.001 258)"
+        ],
+        "note": "Porcelain ink at 22% alpha over midnight; ramp derived from porcelain ink."
+      },
+      "porcelain-ground": {
+        "role": "neutral",
+        "displayName": "Porcelain Ground",
+        "canonical": "#EEF1F6",
+        "tonalRamp": [
+          "oklch(15% 0.001 261)",
+          "oklch(25% 0.004 261)",
+          "oklch(35% 0.007 261)",
+          "oklch(48% 0.007 261)",
+          "oklch(60% 0.007 261)",
+          "oklch(72% 0.007 261)",
+          "oklch(84% 0.005 261)",
+          "oklch(95% 0.001 261)"
+        ]
+      },
+      "porcelain-card": {
+        "role": "neutral",
+        "displayName": "Porcelain Card",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "oklch(15% 0.000 90)",
+          "oklch(25% 0.000 90)",
+          "oklch(35% 0.000 90)",
+          "oklch(48% 0.000 90)",
+          "oklch(60% 0.000 90)",
+          "oklch(72% 0.000 90)",
+          "oklch(84% 0.000 90)",
+          "oklch(95% 0.000 90)"
+        ]
+      },
+      "porcelain-muted": {
+        "role": "neutral",
+        "displayName": "Porcelain Muted",
+        "canonical": "#E3E8F1",
+        "tonalRamp": [
+          "oklch(15% 0.003 262)",
+          "oklch(25% 0.008 262)",
+          "oklch(35% 0.013 262)",
+          "oklch(48% 0.013 262)",
+          "oklch(60% 0.013 262)",
+          "oklch(72% 0.013 262)",
+          "oklch(84% 0.009 262)",
+          "oklch(95% 0.003 262)"
+        ]
+      },
+      "porcelain-border": {
+        "role": "neutral",
+        "displayName": "Porcelain Border",
+        "canonical": "#D3D9E6",
+        "tonalRamp": [
+          "oklch(15% 0.004 266)",
+          "oklch(25% 0.011 266)",
+          "oklch(35% 0.019 266)",
+          "oklch(48% 0.019 266)",
+          "oklch(60% 0.019 266)",
+          "oklch(72% 0.019 266)",
+          "oklch(84% 0.012 266)",
+          "oklch(95% 0.004 266)"
+        ]
+      },
+      "porcelain-input": {
+        "role": "neutral",
+        "displayName": "Porcelain Input",
+        "canonical": "#C3CBDC",
+        "tonalRamp": [
+          "oklch(15% 0.005 266)",
+          "oklch(25% 0.015 266)",
+          "oklch(35% 0.025 266)",
+          "oklch(48% 0.025 266)",
+          "oklch(60% 0.025 266)",
+          "oklch(72% 0.025 266)",
+          "oklch(84% 0.016 266)",
+          "oklch(95% 0.005 266)"
+        ]
+      },
+      "slate-muted-ink": {
+        "role": "neutral",
+        "displayName": "Slate Muted Ink",
+        "canonical": "#4A5675",
+        "tonalRamp": [
+          "oklch(15% 0.011 268)",
+          "oklch(25% 0.032 268)",
+          "oklch(35% 0.053 268)",
+          "oklch(48% 0.053 268)",
+          "oklch(60% 0.053 268)",
+          "oklch(72% 0.053 268)",
+          "oklch(84% 0.034 268)",
+          "oklch(95% 0.011 268)"
+        ]
+      },
+      "signal-scarlet": {
+        "role": "primary",
+        "displayName": "Signal Scarlet (dark)",
+        "canonical": "#E21D2D",
+        "tonalRamp": [
+          "oklch(15% 0.045 25)",
+          "oklch(25% 0.135 25)",
+          "oklch(35% 0.224 25)",
+          "oklch(48% 0.224 25)",
+          "oklch(60% 0.224 25)",
+          "oklch(72% 0.224 25)",
+          "oklch(84% 0.144 25)",
+          "oklch(95% 0.045 25)"
+        ]
+      },
+      "signal-scarlet-light": {
+        "role": "primary",
+        "displayName": "Signal Scarlet (light)",
+        "canonical": "#D01A29",
+        "tonalRamp": [
+          "oklch(15% 0.042 25)",
+          "oklch(25% 0.126 25)",
+          "oklch(35% 0.211 25)",
+          "oklch(48% 0.211 25)",
+          "oklch(60% 0.211 25)",
+          "oklch(72% 0.211 25)",
+          "oklch(84% 0.135 25)",
+          "oklch(95% 0.042 25)"
+        ]
+      },
+      "focus-cobalt": {
+        "role": "tertiary",
+        "displayName": "Focus Cobalt (dark)",
+        "canonical": "#6E95FF",
+        "tonalRamp": [
+          "oklch(15% 0.032 267)",
+          "oklch(25% 0.097 267)",
+          "oklch(35% 0.162 267)",
+          "oklch(48% 0.162 267)",
+          "oklch(60% 0.162 267)",
+          "oklch(72% 0.162 267)",
+          "oklch(84% 0.104 267)",
+          "oklch(95% 0.032 267)"
+        ]
+      },
+      "focus-cobalt-light": {
+        "role": "tertiary",
+        "displayName": "Focus Cobalt (light)",
+        "canonical": "#1E5BFF",
+        "tonalRamp": [
+          "oklch(15% 0.050 264)",
+          "oklch(25% 0.150 264)",
+          "oklch(35% 0.250 264)",
+          "oklch(48% 0.250 264)",
+          "oklch(60% 0.250 264)",
+          "oklch(72% 0.250 264)",
+          "oklch(84% 0.160 264)",
+          "oklch(95% 0.050 264)"
+        ]
+      },
+      "line-utilities-amber": {
+        "role": "secondary",
+        "displayName": "Utilities Amber (dark)",
+        "canonical": "#FFC20E",
+        "tonalRamp": [
+          "oklch(15% 0.034 85)",
+          "oklch(25% 0.103 85)",
+          "oklch(35% 0.172 85)",
+          "oklch(48% 0.172 85)",
+          "oklch(60% 0.172 85)",
+          "oklch(72% 0.172 85)",
+          "oklch(84% 0.110 85)",
+          "oklch(95% 0.034 85)"
+        ]
+      },
+      "line-utilities-amber-light": {
+        "role": "secondary",
+        "displayName": "Utilities Amber (light)",
+        "canonical": "#C28400",
+        "tonalRamp": [
+          "oklch(15% 0.028 76)",
+          "oklch(25% 0.083 76)",
+          "oklch(35% 0.139 76)",
+          "oklch(48% 0.139 76)",
+          "oklch(60% 0.139 76)",
+          "oklch(72% 0.139 76)",
+          "oklch(84% 0.089 76)",
+          "oklch(95% 0.028 76)"
+        ]
+      },
+      "line-telecom-cobalt": {
+        "role": "secondary",
+        "displayName": "Telecom Cobalt (dark)",
+        "canonical": "#3B74FF",
+        "tonalRamp": [
+          "oklch(15% 0.043 264)",
+          "oklch(25% 0.129 264)",
+          "oklch(35% 0.216 264)",
+          "oklch(48% 0.216 264)",
+          "oklch(60% 0.216 264)",
+          "oklch(72% 0.216 264)",
+          "oklch(84% 0.138 264)",
+          "oklch(95% 0.043 264)"
+        ]
+      },
+      "line-telecom-cobalt-light": {
+        "role": "secondary",
+        "displayName": "Telecom Cobalt (light)",
+        "canonical": "#1E5BFF",
+        "tonalRamp": [
+          "oklch(15% 0.050 264)",
+          "oklch(25% 0.150 264)",
+          "oklch(35% 0.250 264)",
+          "oklch(48% 0.250 264)",
+          "oklch(60% 0.250 264)",
+          "oklch(72% 0.250 264)",
+          "oklch(84% 0.160 264)",
+          "oklch(95% 0.050 264)"
+        ]
+      },
+      "line-streaming-scarlet": {
+        "role": "secondary",
+        "displayName": "Streaming Scarlet (dark)",
+        "canonical": "#F0323F",
+        "tonalRamp": [
+          "oklch(15% 0.045 24)",
+          "oklch(25% 0.134 24)",
+          "oklch(35% 0.223 24)",
+          "oklch(48% 0.223 24)",
+          "oklch(60% 0.223 24)",
+          "oklch(72% 0.223 24)",
+          "oklch(84% 0.143 24)",
+          "oklch(95% 0.045 24)"
+        ]
+      },
+      "line-streaming-scarlet-light": {
+        "role": "secondary",
+        "displayName": "Streaming Scarlet (light)",
+        "canonical": "#E21D2D",
+        "tonalRamp": [
+          "oklch(15% 0.045 25)",
+          "oklch(25% 0.135 25)",
+          "oklch(35% 0.224 25)",
+          "oklch(48% 0.224 25)",
+          "oklch(60% 0.224 25)",
+          "oklch(72% 0.224 25)",
+          "oklch(84% 0.144 25)",
+          "oklch(95% 0.045 25)"
+        ]
+      },
+      "line-software-green": {
+        "role": "secondary",
+        "displayName": "Software Green (dark)",
+        "canonical": "#2BB65A",
+        "tonalRamp": [
+          "oklch(15% 0.035 150)",
+          "oklch(25% 0.105 150)",
+          "oklch(35% 0.175 150)",
+          "oklch(48% 0.175 150)",
+          "oklch(60% 0.175 150)",
+          "oklch(72% 0.175 150)",
+          "oklch(84% 0.112 150)",
+          "oklch(95% 0.035 150)"
+        ]
+      },
+      "line-software-green-light": {
+        "role": "secondary",
+        "displayName": "Software Green (light)",
+        "canonical": "#1E9E45",
+        "tonalRamp": [
+          "oklch(15% 0.033 148)",
+          "oklch(25% 0.100 148)",
+          "oklch(35% 0.166 148)",
+          "oklch(48% 0.166 148)",
+          "oklch(60% 0.166 148)",
+          "oklch(72% 0.166 148)",
+          "oklch(84% 0.107 148)",
+          "oklch(95% 0.033 148)"
+        ]
+      },
+      "state-overdue": {
+        "role": "tertiary",
+        "displayName": "Overdue (dark)",
+        "canonical": "#FF7A80",
+        "tonalRamp": [
+          "oklch(15% 0.032 19)",
+          "oklch(25% 0.097 19)",
+          "oklch(35% 0.162 19)",
+          "oklch(48% 0.162 19)",
+          "oklch(60% 0.162 19)",
+          "oklch(72% 0.162 19)",
+          "oklch(84% 0.104 19)",
+          "oklch(95% 0.032 19)"
+        ]
+      },
+      "state-overdue-light": {
+        "role": "tertiary",
+        "displayName": "Overdue (light)",
+        "canonical": "#B3141F",
+        "tonalRamp": [
+          "oklch(15% 0.038 26)",
+          "oklch(25% 0.113 26)",
+          "oklch(35% 0.189 26)",
+          "oklch(48% 0.189 26)",
+          "oklch(60% 0.189 26)",
+          "oklch(72% 0.189 26)",
+          "oklch(84% 0.121 26)",
+          "oklch(95% 0.038 26)"
+        ]
+      },
+      "state-due-soon": {
+        "role": "tertiary",
+        "displayName": "Due Soon (dark)",
+        "canonical": "#FFC20E",
+        "tonalRamp": [
+          "oklch(15% 0.034 85)",
+          "oklch(25% 0.103 85)",
+          "oklch(35% 0.172 85)",
+          "oklch(48% 0.172 85)",
+          "oklch(60% 0.172 85)",
+          "oklch(72% 0.172 85)",
+          "oklch(84% 0.110 85)",
+          "oklch(95% 0.034 85)"
+        ]
+      },
+      "state-due-soon-light": {
+        "role": "tertiary",
+        "displayName": "Due Soon (light)",
+        "canonical": "#8A5A00",
+        "tonalRamp": [
+          "oklch(15% 0.022 73)",
+          "oklch(25% 0.065 73)",
+          "oklch(35% 0.108 73)",
+          "oklch(48% 0.108 73)",
+          "oklch(60% 0.108 73)",
+          "oklch(72% 0.108 73)",
+          "oklch(84% 0.069 73)",
+          "oklch(95% 0.022 73)"
+        ]
+      },
+      "state-paid": {
+        "role": "tertiary",
+        "displayName": "Paid (dark)",
+        "canonical": "#5DD98A",
+        "tonalRamp": [
+          "oklch(15% 0.032 153)",
+          "oklch(25% 0.095 153)",
+          "oklch(35% 0.158 153)",
+          "oklch(48% 0.158 153)",
+          "oklch(60% 0.158 153)",
+          "oklch(72% 0.158 153)",
+          "oklch(84% 0.101 153)",
+          "oklch(95% 0.032 153)"
+        ]
+      },
+      "state-paid-light": {
+        "role": "tertiary",
+        "displayName": "Paid (light)",
+        "canonical": "#17803A",
+        "tonalRamp": [
+          "oklch(15% 0.028 149)",
+          "oklch(25% 0.084 149)",
+          "oklch(35% 0.139 149)",
+          "oklch(48% 0.139 149)",
+          "oklch(60% 0.139 149)",
+          "oklch(72% 0.139 149)",
+          "oklch(84% 0.089 149)",
+          "oklch(95% 0.028 149)"
+        ]
+      },
+      "destructive": {
+        "role": "tertiary",
+        "displayName": "Destructive (dark)",
+        "canonical": "#FF6B72",
+        "tonalRamp": [
+          "oklch(15% 0.036 20)",
+          "oklch(25% 0.108 20)",
+          "oklch(35% 0.181 20)",
+          "oklch(48% 0.181 20)",
+          "oklch(60% 0.181 20)",
+          "oklch(72% 0.181 20)",
+          "oklch(84% 0.116 20)",
+          "oklch(95% 0.036 20)"
+        ]
+      },
+      "destructive-light": {
+        "role": "tertiary",
+        "displayName": "Destructive (light)",
+        "canonical": "#B3141F",
+        "tonalRamp": [
+          "oklch(15% 0.038 26)",
+          "oklch(25% 0.113 26)",
+          "oklch(35% 0.189 26)",
+          "oklch(48% 0.189 26)",
+          "oklch(60% 0.189 26)",
+          "oklch(72% 0.189 26)",
+          "oklch(84% 0.121 26)",
+          "oklch(95% 0.038 26)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page title (month name); 2.25rem on mobile."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Remaining-amount figure per currency."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Popover, sheet and empty-state headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Notes, sublines, descriptions."
+      },
+      "body-strong": {
+        "displayName": "Body Strong",
+        "purpose": "Item names in rows."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase tracked signage labels: columns, groups, panels, currency codes."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Every button label, uppercase."
+      },
+      "station": {
+        "displayName": "Station",
+        "purpose": "Station names on the network map (SVG)."
+      }
+    },
+    "themes": {
+      "switch": "prefers-color-scheme, overridden by :root[data-theme=light|dark]",
+      "default": "follows OS; midnight enamel is the reference",
+      "railAlwaysMidnight": true
+    },
+    "shadows": [
+      {
+        "name": "popover",
+        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1), 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent)",
+        "purpose": "Floating popovers and selects only."
+      },
+      {
+        "name": "sheet",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "Side sheet over a 10% black, lightly blurred backdrop."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-fast",
+        "value": "200ms",
+        "purpose": "Station fill, line focus thickness and dimming, legend chip state."
+      },
+      {
+        "name": "progress",
+        "value": "300ms ease-out",
+        "purpose": "Paid progress fill width."
+      },
+      {
+        "name": "row-highlight",
+        "value": "500ms",
+        "purpose": "Fade of a row highlighted from the map."
+      },
+      {
+        "name": "station-pulse",
+        "value": "2s cubic-bezier(0.16, 1, 0.3, 1) infinite",
+        "purpose": "Overdue halo scale 0.7 to 1.5 with fade; static 60% ring under reduced motion."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Button active state."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "Rail becomes sidebar; table replaces stacked list; summary goes two-up."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled scarlet action per level: Add bill, overdue Mark paid, form submit.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M12 5v14\"/></svg>Add bill</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;border:1px solid transparent;font-size:14px;font-family:'Barlow Condensed','Barlow',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all .15s;outline:none;}.ds-btn-primary:active{transform:translateY(1px);}.ds-btn-primary:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 50%,transparent);}.ds-btn-primary{background:var(--primary);color:var(--primary-foreground);}.ds-btn-primary:hover{background:color-mix(in srgb,var(--primary) 80%,transparent);}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Month navigation and row-level Mark paid when the row is not overdue.",
+      "html": "<button class=\"ds-btn-outline\">This month</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;border:1px solid transparent;font-size:14px;font-family:'Barlow Condensed','Barlow',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all .15s;outline:none;}.ds-btn-outline:active{transform:translateY(1px);}.ds-btn-outline:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 50%,transparent);}.ds-btn-outline{background:transparent;color:var(--foreground);border-color:color-mix(in srgb,var(--foreground) 60%,transparent);}.ds-btn-outline:hover{border-color:var(--foreground);background:color-mix(in srgb,var(--foreground) 8%,transparent);}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Undo and icon-only edit inside rows.",
+      "html": "<button class=\"ds-btn-ghost\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 14 4 9l5-5\"/><path d=\"M4 9h10.5a5.5 5.5 0 0 1 0 11H11\"/></svg>Undo</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border-radius:8px;border:1px solid transparent;font-size:14px;font-family:'Barlow Condensed','Barlow',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;transition:all .15s;outline:none;}.ds-btn-ghost:active{transform:translateY(1px);}.ds-btn-ghost:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 50%,transparent);}.ds-btn-ghost{height:28px;border-radius:6.4px;font-size:12.8px;background:transparent;color:var(--foreground);}.ds-btn-ghost:hover{background:var(--muted);}"
+    },
+    {
+      "name": "Amount Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Tabular amount field with its currency code set as a label beside it.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Amount paid</span><span class=\"ds-field-row\"><input class=\"ds-input\" value=\"389.00\" inputmode=\"decimal\"><span class=\"ds-field-cur\">MXN</span></span></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:'Barlow',sans-serif;color:var(--foreground);}.ds-field-label{font-size:14px;font-weight:500;}.ds-field-row{display:flex;align-items:center;gap:8px;}.ds-input{height:32px;width:180px;padding:4px 10px;border-radius:8px;border:1px solid var(--input);background:transparent;color:var(--foreground);font:inherit;font-size:14px;font-variant-numeric:tabular-nums;caret-color:var(--primary);outline:none;transition:border-color .15s,box-shadow .15s;}.ds-input:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 50%,transparent);}.ds-field-cur{font-family:'Barlow Condensed',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;font-size:14px;color:var(--muted-foreground);}"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "rail",
+      "description": "Midnight rail in both themes: brand mark, current item with scarlet underline, status at the foot.",
+      "html": "<aside class=\"ds-rail\"><div class=\"ds-brand\"><svg viewBox=\"0 0 32 32\" width=\"32\" height=\"32\" aria-hidden=\"true\"><path d=\"M2 10h11l6 6h11\" stroke=\"var(--line-streaming)\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M2 16h28\" stroke=\"var(--line-telecom)\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M2 22h11l6-6\" stroke=\"var(--line-utilities)\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><circle cx=\"16\" cy=\"16\" r=\"5.5\" fill=\"var(--rail)\" stroke=\"var(--rail-foreground)\" stroke-width=\"2.5\"/></svg><span>todo-agent</span></div><a class=\"ds-nav-item\" href=\"#\" aria-current=\"page\">Bills<span class=\"ds-nav-bar\"></span></a><p class=\"ds-rail-status\"><span class=\"ds-dot\"></span>1 overdue</p></aside>",
+      "css": ".ds-rail{display:flex;flex-direction:column;gap:32px;width:240px;padding:28px 20px;background:var(--rail);color:var(--rail-foreground);font-family:'Barlow',sans-serif;}.ds-brand{display:flex;align-items:center;gap:10px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;}.ds-nav-item{position:relative;display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:6.4px;font-size:14px;font-weight:500;color:inherit;text-decoration:none;background:rgb(255 255 255 / 0.08);outline:none;}.ds-nav-item:focus-visible{box-shadow:0 0 0 2px var(--ring);}.ds-nav-bar{position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px;background:var(--line-streaming);}.ds-rail-status{display:flex;align-items:center;gap:8px;margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;}.ds-dot{width:8px;height:8px;border-radius:50%;background:var(--overdue);}"
+    },
+    {
+      "name": "Line Legend Chip",
+      "kind": "chip",
+      "refersTo": "line-chip",
+      "description": "Toggles focus on one line; the pressed chip holds the muted surface and the others dim to 55%.",
+      "html": "<div class=\"ds-legend\"><button class=\"ds-chip\" aria-pressed=\"true\"><span class=\"ds-swatch\" style=\"background:var(--line-utilities)\"></span>Utilities</button><button class=\"ds-chip ds-chip-dim\" aria-pressed=\"false\"><span class=\"ds-swatch\" style=\"background:var(--line-telecom)\"></span>Internet &amp; phone</button></div>",
+      "css": ".ds-legend{display:flex;gap:4px;}.ds-chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border:0;border-radius:6.4px;background:transparent;color:var(--foreground);font-family:'Barlow',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background-color .2s,opacity .2s;outline:none;}.ds-chip:hover,.ds-chip[aria-pressed=true]{background:var(--muted);}.ds-chip:focus-visible{box-shadow:0 0 0 2px var(--ring);}.ds-chip-dim{opacity:.55;}.ds-swatch{width:20px;height:4px;border-radius:9999px;}"
+    },
+    {
+      "name": "Currency Summary Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat hairline panel with a condensed label, a tabular headline figure and the paid progress rail.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-top\"><h2>MXN remaining</h2><span>Paid $1,539.00 of $3,695.00</span></div><p class=\"ds-figure\">$2,156.00</p><div class=\"ds-track\"><div class=\"ds-fill\" style=\"width:42%\"></div></div></section>",
+      "css": ".ds-panel{display:flex;flex-direction:column;gap:12px;width:420px;padding:16px 24px;border:1px solid var(--border);border-radius:11.2px;background:var(--card);color:var(--card-foreground);font-family:'Barlow',sans-serif;}.ds-panel-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:14px;color:var(--muted-foreground);font-variant-numeric:tabular-nums;}.ds-panel h2{margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;}.ds-figure{margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:36px;line-height:1;letter-spacing:-0.025em;font-variant-numeric:tabular-nums;}.ds-track{position:relative;height:6px;border-radius:9999px;background:var(--muted);}.ds-fill{position:absolute;inset:0 auto 0 0;border-radius:9999px;background:var(--paid);transition:width .3s ease-out;}"
+    },
+    {
+      "name": "Network Line with Stations",
+      "kind": "custom",
+      "refersTo": "network-map",
+      "description": "Signature: a line ink with terminus bars, open, paid and overdue stations, and the TODAY tick.",
+      "html": "<svg class=\"ds-net\" viewBox=\"0 0 420 110\" role=\"img\" aria-label=\"Network line sample\"><line x1=\"20\" x2=\"400\" y1=\"50\" y2=\"50\" stroke=\"var(--line-telecom)\" stroke-width=\"7\" stroke-linecap=\"round\"/><line x1=\"20\" x2=\"20\" y1=\"41\" y2=\"59\" stroke=\"var(--line-telecom)\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"400\" x2=\"400\" y1=\"41\" y2=\"59\" stroke=\"var(--line-telecom)\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"240\" x2=\"240\" y1=\"14\" y2=\"92\" stroke=\"var(--foreground)\" stroke-width=\"2\"/><rect x=\"214\" y=\"88\" width=\"52\" height=\"18\" rx=\"4\" fill=\"var(--foreground)\"/><text x=\"240\" y=\"101\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"600\" letter-spacing=\"1\" fill=\"var(--card)\">TODAY</text><circle class=\"ds-halo\" cx=\"110\" cy=\"50\" r=\"15\" fill=\"none\" stroke=\"var(--overdue)\" stroke-width=\"2\"/><circle cx=\"110\" cy=\"50\" r=\"9\" fill=\"var(--card)\" stroke=\"var(--overdue)\" stroke-width=\"4\"/><text class=\"ds-st ds-st-late\" x=\"110\" y=\"33\" text-anchor=\"middle\">TELMEX</text><circle class=\"ds-station\" cx=\"300\" cy=\"50\" r=\"9\" fill=\"var(--card)\" stroke=\"var(--station)\" stroke-width=\"4\"/><text class=\"ds-st\" x=\"300\" y=\"33\" text-anchor=\"middle\">TELCEL</text><circle cx=\"60\" cy=\"50\" r=\"9\" fill=\"var(--station)\" stroke=\"var(--station)\" stroke-width=\"4\"/><text class=\"ds-st\" x=\"60\" y=\"77\" text-anchor=\"middle\">IZZI</text></svg>",
+      "css": ".ds-net{width:420px;background:var(--card);border:1px solid var(--border);border-radius:11.2px;}.ds-st{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:0.06em;fill:var(--foreground);}.ds-st-late{fill:var(--overdue);}.ds-station{cursor:pointer;transition:fill .2s,stroke-width .2s;}.ds-station:hover{stroke-width:6;}.ds-halo{transform-box:fill-box;transform-origin:center;animation:ds-pulse 2s cubic-bezier(0.16,1,0.3,1) infinite;}@keyframes ds-pulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.5);opacity:0}}@media (prefers-reduced-motion:reduce){.ds-halo{animation:none;opacity:.6}}"
+    },
+    {
+      "name": "Status Tag",
+      "kind": "custom",
+      "refersTo": "status-tag",
+      "description": "Icon plus sentence-case text in the state colour; never a filled badge.",
+      "html": "<span class=\"ds-status ds-overdue\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4M12 17h.01\"/></svg>4 days late</span> <span class=\"ds-status ds-paid\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Paid Nov 3</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:6px;font-family:'Barlow',sans-serif;font-size:14px;font-weight:500;}.ds-overdue{color:var(--overdue);}.ds-paid{color:var(--paid);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Midnight Transit Diagram",
+    "overview": "The product is drawn as a night-time metro map. Every recurring commitment sits on a coloured line, every item is a station on its day, and the reader's question (\"what is next, what is left\") is answered the way a platform sign answers it: condensed uppercase labels, tabular figures, saturated line inks on enamel. The default theme is midnight enamel (deep navy ground, deeper navy panels, porcelain ink); the light theme is porcelain (cool off-white ground, white panels, navy ink) with every line ink and state colour darkened to hold contrast. The navigation rail stays midnight in both themes, so the brand plate never changes.\n\nDensity is operational rather than airy: hairline-bordered panels stacked on a 20px gutter, 12px row rhythm, numbers that line up. Premium comes from restraint and finish (a single scarlet action, exact alignment, true transit typography), not from decoration. There are no shadows on the page itself, no gradients, no imagery; depth is tonal.",
+    "keyCharacteristics": [
+      "Midnight enamel and porcelain themes sharing one token set, switched by `prefers-color-scheme` or `data-theme`.",
+      "Four category line inks are the only saturated hues besides the scarlet action and the state colours.",
+      "Barlow Condensed for anything that reads like signage (headings, labels, buttons, station names); Barlow for running text.",
+      "Tabular figures are opt-in (`tabular` utility) and applied to every money amount, date and day scale.",
+      "Hairline borders and tonal panels instead of elevation.",
+      "One signature: the network map, with ringed stations, interchange capsules and a TODAY tick."
+    ],
+    "rules": [
+      {
+        "name": "The Line Ink Rule",
+        "body": "A line ink means its category and nothing else. It is never used for status, emphasis or decoration outside the network, its legend, its row swatch and the brand mark.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Scarlet Rule",
+        "body": "Scarlet fill is the action. A row-level action is outlined by default and only fills scarlet when that row is overdue; the page header carries the only always-filled button.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Inks Rule",
+        "body": "Every colour token exists as a dark/light pair; a new colour is not added until both values pass contrast on their own ground.",
+        "section": "colors"
+      },
+      {
+        "name": "The Signage Rule",
+        "body": "Condensed uppercase is reserved for things a transit sign would print: names of lines, stations, columns, groups, currencies and actions. Sentences stay in Barlow sentence case.",
+        "section": "typography"
+      },
+      {
+        "name": "The Aligned Figures Rule",
+        "body": "Every amount, date and day number uses tabular figures; the global default is proportional, so apply `tabular` explicitly.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Plate Rule",
+        "body": "Anything on the page itself (panels, rows, chips, buttons) has no shadow. Only layers that float over the page may cast one.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do give every new category a dark/light line-ink pair and use it only for that category (The Line Ink Rule).",
+      "Do set every heading, label, button and station name in Barlow Condensed 600, uppercase and tracked (0.06 to 0.08em) when it is a label, tight (-0.025em) when it is a figure.",
+      "Do apply tabular figures to every amount, date and day scale.",
+      "Do keep page surfaces flat: card token, 1px hairline, 11.2px radius.",
+      "Do keep the rail midnight in both themes.",
+      "Do show status as icon plus coloured text, and as ring treatment on the map."
+    ],
+    "donts": [
+      "Don't fill more than one action scarlet at the same level; row actions are outlined unless the row is overdue.",
+      "Don't use a line ink for status, warning or decoration.",
+      "Don't add shadows, gradients or glows to anything that sits on the page.",
+      "Don't set sentences in condensed uppercase.",
+      "Don't convert or merge currencies in a total; each currency gets its own figure."
+    ]
+  }
+}
