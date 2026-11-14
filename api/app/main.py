@@ -7,14 +7,29 @@ Protected by default: every non-public router must be mounted with
 ``dependencies=[Depends(require_api_key)]``.
 """
 
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
+from app.bills.router import bills_router, payments_router
+from app.db import build_engine, dispose_engine
 from app.routes import public
-from app.security import API_KEY_HEADER_NAME
+from app.security import API_KEY_HEADER_NAME, require_api_key
 from app.settings import get_settings
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Create the DB engine once; dispose it on shutdown. Lazy: no
+    connection is opened until a route actually needs the database."""
+    engine = build_engine(get_settings())
+    app.state.db_engine = engine
+    try:
+        yield
+    finally:
+        await dispose_engine(engine)
 
 
 def _openapi_with_api_key_scheme(app: FastAPI) -> Callable[[], dict[str, Any]]:
@@ -41,11 +56,12 @@ def _openapi_with_api_key_scheme(app: FastAPI) -> Callable[[], dict[str, Any]]:
 def create_app() -> FastAPI:
     settings = get_settings()  # raises at startup when API_KEYS is missing/empty
 
-    app = FastAPI(title="todo-agent API", version=settings.app_version)
+    app = FastAPI(title="todo-agent API", version=settings.app_version, lifespan=_lifespan)
     app.openapi = _openapi_with_api_key_scheme(app)  # type: ignore[method-assign]
     app.include_router(public.router)
-    # Mount future routers here with:
-    #   app.include_router(some_router, dependencies=[Depends(require_api_key)])
+    # Protected by default: every business router carries the API key dependency.
+    app.include_router(bills_router, dependencies=[Depends(require_api_key)])
+    app.include_router(payments_router, dependencies=[Depends(require_api_key)])
     return app
 
 
