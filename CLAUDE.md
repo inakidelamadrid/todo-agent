@@ -16,6 +16,50 @@ Applies to the whole codebase: frontend controllers, models, and backend.
 - Frontend: function components and hooks only; no class components.
 - Backend: plain functions for routes, services, and logic; use immutable data models (e.g. frozen Pydantic models / dataclasses).
 
+## Domain model: bills & payments
+
+One model, shared by frontend and backend. Change both sides together.
+
+- **Sources of truth:**
+  - Frontend: `web/src/features/bills/model/types.ts`, with logic in `schedule.ts`.
+  - Backend: `api/app/bills/` (`schemas.py`, `models.py`, `domain.py`).
+- **JSON on the wire is camelCase.** Python stays snake_case and uses Pydantic `alias_generator=to_camel`.
+- **Money is always integer cents** (`estimatedCents`, `actualCents`, 0–1 000 000 000). Never use floats. Each bill has its own currency (`MXN` | `USD`), and totals are per currency, never converted.
+- **Months are `YYYY-MM` strings and dates are `YYYY-MM-DD`.**
+
+**Bill**
+
+| Field | Type / rules |
+|---|---|
+| `id` | UUID, server-generated |
+| `name` | 1–80 characters, trimmed |
+| `note` | 0–200 characters, default `""` |
+| `line` | `utilities` \| `telecom` \| `streaming` \| `software` (the category; each is one "line" on the network map) |
+| `currency` | `MXN` \| `USD` |
+| `estimatedCents` | int; the expected amount |
+| `dueDay` | 1–31; clamped to the month's last day when displayed |
+| `recurrence` | `monthly` \| `bimonthly` \| `yearly` |
+| `startMonth` | `YYYY-MM`; the first month it's due |
+| `createdAt` / `updatedAt` | server-managed, UTC |
+
+**Payment**: at most one per bill per period. The primary key is `(billId, period)`, and deleting a bill deletes its payments.
+
+| Field | Type / rules |
+|---|---|
+| `billId` | UUID → Bill |
+| `period` | `YYYY-MM`; the bill must be due that month |
+| `actualCents` | int; what was actually paid. It replaces the estimate in totals |
+| `paidAt` | `YYYY-MM-DD` |
+
+**Rules**
+- **Due rule:** a bill is due in month `m` when `m >= startMonth` and `(m − startMonth)` in months is divisible by 1 / 2 / 12. This is `isDueInMonth` in the frontend and `is_due_in_month` in the backend.
+- **Status** (frontend only): `paid` if a payment exists; otherwise `overdue` (past its due date), `due-soon` (due within 3 days), or `upcoming`.
+- **API**, protected by `X-API-Key`:
+  - `GET`/`POST /bills`
+  - `GET`/`PATCH`/`DELETE /bills/{id}`
+  - `PUT`/`DELETE /bills/{id}/payments/{period}`: mark paid as an idempotent upsert, and undo
+  - `GET /payments?month=YYYY-MM`
+
 ## Backend: secure first
 
 - Security comes first in every backend decision.
