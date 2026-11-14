@@ -1,0 +1,64 @@
+# Database tooling for local development: Postgres + Redis via Docker Compose.
+# Credentials live in .env.db (gitignored); recipes never print them.
+
+.DEFAULT_GOAL := help
+ENV_FILE := .env.db
+COMPOSE  := docker compose --env-file $(ENV_FILE)
+
+.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset
+
+help: ## List available targets
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-14s\033[0m %s\n", $$1, $$2}'
+
+check-env: # Internal guard: .env.db must exist and have real passwords
+	@test -f $(ENV_FILE) || { \
+		echo "✗ $(ENV_FILE) not found."; \
+		echo "  Run: cp .env.db.example .env.db  — then set both passwords (no 'change-me')."; \
+		exit 1; }
+	@! grep -qE '^POSTGRES_PASSWORD=change-me[[:space:]]*$$' $(ENV_FILE) || { \
+		echo "✗ POSTGRES_PASSWORD in $(ENV_FILE) is still 'change-me'. Choose a real password."; \
+		exit 1; }
+	@! grep -qE '^REDIS_PASSWORD=change-me[[:space:]]*$$' $(ENV_FILE) || { \
+		echo "✗ REDIS_PASSWORD in $(ENV_FILE) is still 'change-me'. Choose a real password."; \
+		exit 1; }
+	@! grep -qE '^POSTGRES_PASSWORD=[[:space:]]*$$' $(ENV_FILE) || { \
+		echo "✗ POSTGRES_PASSWORD in $(ENV_FILE) is empty."; exit 1; }
+	@! grep -qE '^REDIS_PASSWORD=[[:space:]]*$$' $(ENV_FILE) || { \
+		echo "✗ REDIS_PASSWORD in $(ENV_FILE) is empty."; exit 1; }
+
+db-up: check-env ## Start Postgres and Redis, wait until healthy
+	@$(COMPOSE) up -d --wait
+	@echo "✓ Databases are up and healthy. Try: make db-status"
+
+db-down: ## Stop and remove the containers (data is kept)
+	@$(COMPOSE) down
+
+db-restart: db-down db-up ## Stop, then start both databases again
+
+db-status: check-env ## Show containers and health
+	@$(COMPOSE) ps
+
+db-logs: check-env ## Follow logs for both services, or one with s=postgres / s=redis
+	@$(COMPOSE) logs -f $(s)
+
+db-psql: check-env ## Open a psql shell in the Postgres container
+	@$(COMPOSE) exec postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+
+db-redis-cli: check-env ## Open an authenticated redis-cli in the Redis container
+	@$(COMPOSE) exec redis sh -c 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli'
+
+db-backup: check-env ## Dump Postgres to backups/<timestamp>.sql
+	@mkdir -p backups
+	@$(COMPOSE) exec -T postgres sh -c 'pg_dump -U "$$POSTGRES_USER" "$$POSTGRES_DB"' \
+		> backups/$$(date +%Y%m%d-%H%M%S).sql
+	@echo "✓ Backup written to backups/ (latest: $$(ls -t backups | head -1))"
+
+db-reset: check-env ## Destructive: remove containers AND volumes (asks for confirmation)
+	@read -p "Type 'reset' to delete all database data: " answer; \
+	if [ "$$answer" = "reset" ]; then \
+		$(COMPOSE) down -v; \
+		echo "✗ All database data deleted."; \
+	else \
+		echo "Aborted — nothing was deleted."; \
+	fi

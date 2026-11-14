@@ -1,0 +1,39 @@
+# Postgres 17 and Redis 7 for local development.
+# All credentials come from --env-file .env.db (gitignored); nothing is hardcoded.
+name: todo-agent
+
+services:
+  postgres:
+    image: postgres:17.12-alpine3.24
+    restart: unless-stopped
+    env_file: .env.db
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7.4.12-alpine3.22
+    restart: unless-stopped
+    env_file: .env.db
+    # Password read from container env at start, so it never appears in this
+    # file or in `docker compose config` output.
+    command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres_data:
+  redis_data:

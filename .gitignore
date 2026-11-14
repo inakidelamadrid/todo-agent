@@ -3,6 +3,8 @@ dist/
 
 # Backend (Python)
 .env
+.env.db
+backups/
 .venv/
 __pycache__/
 *.pyc
