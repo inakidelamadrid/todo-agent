@@ -5,7 +5,7 @@
 ENV_FILE := .env.db
 COMPOSE  := docker compose --env-file $(ENV_FILE)
 
-.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset
+.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset api-migrate api-revision api-test api-dev
 
 help: ## List available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -62,3 +62,22 @@ db-reset: check-env ## Destructive: remove containers AND volumes (asks for conf
 	else \
 		echo "Aborted — nothing was deleted."; \
 	fi
+
+check-db-running: check-env # Internal: Postgres must be up
+	@$(COMPOSE) ps --status running --services 2>/dev/null | grep -q '^postgres$$' || { \
+		echo "✗ Postgres is not running — run: make db-up"; exit 1; }
+
+api-migrate: check-db-running ## Run alembic upgrade head (requires make db-up)
+	@output=$$(cd api && uv run alembic upgrade head 2>&1); status=$$?; \
+	printf '%s\n' "$$output"; test $$status -eq 0 || exit $$status; \
+	printf '%s' "$$output" | grep -q 'Running upgrade' || echo "✓ Migrations up-to-date"
+
+api-revision: check-db-running ## Autogenerate an Alembic revision: make api-revision m="message"
+	@test -n "$(m)" || { echo 'Usage: make api-revision m="message"'; exit 1; }
+	@cd api && uv run alembic revision --autogenerate -m "$(m)"
+
+api-test: ## Run the API test suite in parallel
+	@cd api && uv run pytest -n auto
+
+api-dev: ## Start uvicorn with reload on 127.0.0.1:8000
+	@cd api && uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
