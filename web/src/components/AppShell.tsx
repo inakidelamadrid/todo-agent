@@ -31,9 +31,7 @@ export const AppShell = ({ children, status }: { readonly children: ReactNode; r
       <div className="hidden flex-col gap-6 md:flex">
         {status}
         <p className="text-xs leading-relaxed text-[#A9B6DA]">
-          Saved in this browser.
-          <br />
-          Sample bills included; edit or delete them.
+          Saved to your bills API.
         </p>
       </div>
     </aside>
