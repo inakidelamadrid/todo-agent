@@ -1,6 +1,6 @@
 # EPIC-008: Telegram integration (infra)
 
-- **Status:** draft
+- **Status:** in-tickets
 - **Type:** infrastructure (formalizes foundation **F-7 Telegram channel**)
 - **Owner:** Ignacio
 - **Depends on:** F-2 Scoped API keys, F-6 Scheduler & notifications (Redis queue)
@@ -149,34 +149,100 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 - [ ] Dev and prod bots are separate; `make telegram-webhook` and `make telegram-info` work locally through a tunnel.
 - [ ] AI work runs async, so the user sees "Working on it…" immediately, then the result.
 
-## 9. Proposed ticket breakdown (draft)
+## 9. Ticket breakdown
 
-- **Ops:**
-  - Bots (dev/prod) + command list + privacy settings.
-  - Tunnel + `make telegram-webhook` / `telegram-info`.
-  - n8n AI flows exported to `integrations/n8n/`.
-- **Backend:**
-  - Webhook endpoint (secret, allowlist, idempotency).
-  - Router + session state (Redis).
-  - `TelegramService` outbound + templates + signed callbacks.
-  - Central notification policy (quiet hours, pause, caps, grouping) shared with F-6.
-  - n8n client (HMAC) + response schemas.
-  - Observability + health.
-- **Frontend:** notification settings (quiet hours, pause, categories) and a Telegram connection status.
+49 tickets (43 backend, 6 frontend), in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-031 to BE-033 need the F-6 tickets (BE-047 to BE-052), listed in `Epics/README.md`.
+
+**Start anywhere here (no dependencies):** BE-004, BE-005, BE-010, BE-018, BE-020, BE-024, BE-036, FE-002, FE-006.
+
+### Inbound: webhook, allowlist, idempotency, router
+
+- [BE-004](../tickets/backend/BE-004-telegram-settings.md): Telegram settings (bot token, webhook secret, allowed user ID). Depends on: none
+- [BE-005](../tickets/backend/BE-005-aiogram-and-update-fixtures.md): Add aiogram and parse recorded update payloads. Depends on: none
+- [BE-006](../tickets/backend/BE-006-inbound-update-mapping.md): Map aiogram's Update to our own InboundUpdate. Depends on: BE-005
+- [BE-007](../tickets/backend/BE-007-telegram-secret-guard.md): Webhook guard: require_telegram_secret dependency. Depends on: BE-004
+- [BE-008](../tickets/backend/BE-008-telegram-webhook-route.md): Webhook route that accepts and parses updates. Depends on: BE-006, BE-007
+- [BE-009](../tickets/backend/BE-009-telegram-allowlist.md): Allowlist: only the owner's updates are processed. Depends on: BE-008
+- [BE-010](../tickets/backend/BE-010-telegram-update-model.md): TelegramUpdate table and migration. Depends on: none
+- [BE-011](../tickets/backend/BE-011-telegram-update-repository.md): Repository: claim an update once, mark its outcome. Depends on: BE-006, BE-010
+- [BE-012](../tickets/backend/BE-012-webhook-idempotency.md): Webhook processes each update once. Depends on: BE-009, BE-011
+- [BE-013](../tickets/backend/BE-013-update-router-core.md): Router: callback, command and default routes. Depends on: BE-006
+- [BE-014](../tickets/backend/BE-014-update-router-keywords.md): Router: caption keywords. Depends on: BE-013
+- [BE-015](../tickets/backend/BE-015-handler-registry-dispatch.md): Handler registry and dispatch from the webhook. Depends on: BE-012, BE-013
+- [BE-016](../tickets/backend/BE-016-session-store-pending-mode.md): Session store port and pending mode in the router. Depends on: BE-015
+- [BE-017](../tickets/backend/BE-017-redis-session-store.md): Redis client and Redis-backed session store. Depends on: BE-016
+
+### Outbound: sender, templates, buttons, policy, outbox
+
+- [BE-018](../tickets/backend/BE-018-telegram-sender-port.md): Sender port and a recording fake. Depends on: none
+- [BE-019](../tickets/backend/BE-019-aiogram-sender-adapter.md): aiogram Bot adapter for the sender port. Depends on: BE-004, BE-005, BE-018
+- [BE-020](../tickets/backend/BE-020-message-templates.md): Message templates with central HTML escaping. Depends on: none
+- [BE-021](../tickets/backend/BE-021-help-reply-end-to-end.md): The bot replies: /help works end to end. Depends on: BE-015, BE-019, BE-020
+- [BE-022](../tickets/backend/BE-022-signed-callback-data.md): Signed callback data (HMAC) for inline buttons. Depends on: BE-004
+- [BE-023](../tickets/backend/BE-023-inline-buttons-and-callback-verification.md): Inline buttons and verified button taps. Depends on: BE-021, BE-022
+- [BE-024](../tickets/backend/BE-024-notification-policy-quiet-hours-pause.md): Notification policy: quiet hours and pause. Depends on: none
+- [BE-025](../tickets/backend/BE-025-notification-policy-caps-grouping.md): Notification policy: per-category caps and grouping. Depends on: BE-024
+- [BE-026](../tickets/backend/BE-026-notification-policy-storage.md): Store the notification policy (table and repository). Depends on: BE-025
+- [BE-027](../tickets/backend/BE-027-notification-settings-endpoints.md): GET and PATCH /settings/notifications. Depends on: BE-026
+- [BE-028](../tickets/backend/BE-028-pause-resume-commands.md): /pause and /resume commands. Depends on: BE-021, BE-026
+- [BE-029](../tickets/backend/BE-029-telegram-outbound-table.md): Outbound message table and enqueue. Depends on: BE-010 (for the models module)
+- [BE-030](../tickets/backend/BE-030-telegram-service-send.md): telegram service send(): the one function features call. Depends on: BE-020, BE-025, BE-026, BE-029
+- [BE-031](../tickets/backend/BE-031-outbound-delivery-worker.md): Deliver due outbound messages. Depends on: BE-019, BE-030, BE-051, BE-052
+- [BE-032](../tickets/backend/BE-032-rate-limit-and-backoff.md): Honour Telegram 429 retry_after and back off. Depends on: BE-031
+- [BE-033](../tickets/backend/BE-033-working-on-it-edit.md): "Working on it…" then edit: service edit and delete. Depends on: BE-021, BE-050, BE-051
+- [BE-034](../tickets/backend/BE-034-email-fallback.md): Fall back to email when Telegram stays unreachable — **blocked**. Depends on: BE-031, BE-032, EPIC-007
+
+### Media and n8n
+
+- [BE-035](../tickets/backend/BE-035-media-download-limits.md): Download media with size and type limits. Depends on: BE-019
+- [BE-045](../tickets/backend/BE-045-keep-or-discard-media-prompt.md): Ask "Keep this file?" after media is processed. Depends on: BE-017, BE-023, BE-035
+- [BE-036](../tickets/backend/BE-036-n8n-response-schemas.md): Strict schemas for n8n transcribe and OCR responses. Depends on: none
+- [BE-037](../tickets/backend/BE-037-n8n-client-port.md): n8n client port and fake. Depends on: BE-036
+- [BE-038](../tickets/backend/BE-038-n8n-httpx-client-hmac.md): n8n httpx client with HMAC-signed requests. Depends on: BE-037
+- [BE-041](../tickets/backend/BE-041-n8n-workflows-folder-schemas.md): integrations/n8n: exported schemas and workflow folder. Depends on: BE-036
+
+### Ops, observability, security
+
+- [BE-039](../tickets/backend/BE-039-make-telegram-webhook-info.md): make telegram-webhook and make telegram-info. Depends on: BE-004, BE-005
+- [BE-040](../tickets/backend/BE-040-bot-setup-runbook-commands.md): Bot setup runbook and command list script. Depends on: BE-013, BE-039
+- [BE-042](../tickets/backend/BE-042-structured-webhook-logs.md): Structured logs for the webhook (never message text). Depends on: BE-015
+- [BE-043](../tickets/backend/BE-043-telegram-status-endpoint.md): GET /integrations/telegram/status. Depends on: BE-011, BE-019, BE-029
+- [BE-044](../tickets/backend/BE-044-webhook-rate-limit.md): Rate limit on the webhook. Depends on: BE-008
+- [BE-046](../tickets/backend/BE-046-start-code-pairing.md): Pair the bot with a one-time /start code — **blocked**. Depends on: BE-009, BE-021, F-1
+
+### Frontend
+
+- [FE-002](../tickets/frontend/FE-002-extract-shared-api-request.md): Extract the shared API request helper (no behaviour change). Depends on: none
+- [FE-003](../tickets/frontend/FE-003-notification-settings-model-client.md): Notification settings: types, validation and API client. Depends on: FE-002, BE-027
+- [FE-004](../tickets/frontend/FE-004-notification-settings-form.md): Notification settings form (presentational, all states). Depends on: FE-003
+- [FE-005](../tickets/frontend/FE-005-wire-notification-settings.md): Wire notification settings: store, optimistic save, rail entry. Depends on: FE-004
+- [FE-006](../tickets/frontend/FE-006-telegram-status-card.md): Telegram status card (presentational, all states). Depends on: none
+- [FE-007](../tickets/frontend/FE-007-wire-telegram-status.md): Wire the Telegram status card into the settings sheet. Depends on: FE-005, FE-006, BE-043
+
+### Not ticketed here
+
+- Feature commands (`/now`, `/inbox`, `/radar`, `/vault`, …): each owning epic registers its handler in `HANDLERS` (BE-015). Until then they answer "That isn't available yet."
+- n8n contracts for `parse_dump`, `parse_expense`, `extract_document`: EPIC-003, EPIC-002, EPIC-006.
+- Alerting on failures (§5.6) and scheduled clean-up of old updates: F-6.
+- Production hosting for the webhook: undecided; only the ngrok dev set-up is covered.
+- Spanish templates: replies are English only for now.
 
 ## 10. Open questions (answer in place)
 
 1. Architecture: A (n8n-first) or B (API-first)?
-   - Answer:
+   - Answer: API-first
 2. Where is the API reachable over public HTTPS for the webhook (tunnel, VPS, cloud)?
-   - Answer:
+   - Answer: ngrok tunnel
 3. Your Telegram user ID (or should the bot capture it on a one-time `/start <code>` pairing)?
-   - Answer:
+   - Answer: one-time /start code pairing (deferred for further investigation)
+   - (assumed) Until pairing is designed (BE-046), the ID comes from `TELEGRAM_ALLOWED_USER_ID`.
 4. Bot reply language: Spanish, English, or mirror the message?
-   - Answer:
+   - Answer: English
 5. Default quiet hours, and which categories may break through them (e.g. "due today" bills)?
-   - Answer:
+   - Answer: Quiet hours 20:00 - 8:00
+   - (assumed) No category breaks through quiet hours by default; `urgentCategories` is configurable (BE-024, BE-027).
 6. Should important notifications fall back to email when Telegram fails?
-   - Answer:
+   - Answer: Yes (deferred)
 7. Keep voice notes and photos after parsing, or discard them by default?
-   - Answer:
+   - Answer: Ask whether to keep (always)
+   - (assumed) An unanswered prompt discards after 24 hours; nothing is stored before a Keep (BE-045).

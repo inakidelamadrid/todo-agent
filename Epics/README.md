@@ -18,7 +18,7 @@ Epics are feature-level requirements, polished by the human before they become w
 | Epic | Status | Summary |
 |---|---|---|
 | [EPIC-007: Email integration](EPIC-007-email-integration.md) | draft | Outbound transactional email (domain auth, templates, queue, bounces, unsubscribe), inbound forward-to-app routing, Mailpit for dev |
-| [EPIC-008: Telegram integration](EPIC-008-telegram-integration.md) | draft | One private bot: verified webhook, allowlist, idempotency, router to features, central outbound service with quiet hours/caps, the n8n AI contract, dev/prod bots |
+| [EPIC-008: Telegram integration](EPIC-008-telegram-integration.md) | in-tickets | One private bot: verified webhook, allowlist, idempotency, router to features, central outbound service with quiet hours/caps, the n8n AI contract, dev/prod bots |
 
 ## Lifecycle
 
@@ -38,6 +38,27 @@ Several epics need these. Build them first, as their own tickets.
 | **F-6 Scheduler & notifications** | Scheduled jobs and a queue (Redis): reminders, invites, digests. One notification policy (quiet hours, pause, caps, grouping) for every channel. | 001, 003, 004, 005, 007, 008 |
 | **F-7 Telegram channel** | Delivered by **EPIC-008**. | 002, 003, 004, 005, 006 |
 | **F-8 Email channel** | Delivered by **EPIC-007**. | 001, 003, 004, 005, 006 |
+
+## F-6 tickets
+
+F-6 has no epic file; this list is its breakdown. The job runner is **taskiq** with a Redis broker (arq was rejected: maintenance-only, and it pins the Redis client below version 6). Features call only the `JobQueue` port and add lines to the `JOBS` registry and the `SCHEDULES` table.
+
+The notification policy half of F-6 (quiet hours, pause, caps, grouping) is ticketed under EPIC-008 as BE-024 to BE-027.
+
+- [BE-047](../tickets/backend/BE-047-job-queue-port.md): Job queue port, job registry and an inline fake. Depends on: none
+- [BE-048](../tickets/backend/BE-048-add-taskiq-in-memory.md): Add taskiq and run a ping job in memory. Depends on: BE-047
+- [BE-049](../tickets/backend/BE-049-taskiq-redis-worker.md): Redis broker and the worker process (make worker-dev). Depends on: BE-017, BE-048
+- [BE-050](../tickets/backend/BE-050-taskiq-job-queue-adapter.md): JobQueue adapter: enqueue once, optionally later. Depends on: BE-049
+- [BE-051](../tickets/backend/BE-051-job-context-session-sender.md): Give jobs a database session and the Telegram sender. Depends on: BE-049, BE-019
+- [BE-052](../tickets/backend/BE-052-periodic-schedules-heartbeat.md): Periodic schedules table, scheduler process and heartbeat. Depends on: BE-050, BE-051
+- [BE-053](../tickets/backend/BE-053-job-retry-rules.md): Retry rules for failed jobs. Depends on: BE-051
+- [BE-054](../tickets/backend/BE-054-job-failures-table.md): Record jobs that failed for good. Depends on: BE-053
+- [BE-055](../tickets/backend/BE-055-daily-cleanup-job.md): Daily clean-up job. Depends on: BE-052, BE-054, BE-011
+- [BE-056](../tickets/backend/BE-056-jobs-status-endpoint.md): GET /jobs/status. Depends on: BE-052, BE-054
+- [BE-057](../tickets/backend/BE-057-job-failure-alert.md): Tell the owner when a job fails for good. Depends on: BE-054, BE-030, BE-031
+- [FE-008](../tickets/frontend/FE-008-worker-status-line.md): Background worker status line in the settings sheet. Depends on: BE-056, FE-007
+
+Unblocks BE-031 to BE-033 (Telegram delivery). Running the worker and scheduler in production is undecided, along with hosting.
 
 ## Suggested order
 
