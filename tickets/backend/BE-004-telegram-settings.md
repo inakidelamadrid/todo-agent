@@ -100,3 +100,8 @@ Things that should *not* be in the diff: any route, any aiogram import, any real
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-004-telegram-settings`. Three files touched, as the ticket scoped: `settings.py`, `.env.example`, `test_settings_telegram.py`.
+- Fields + validator exactly per ticket; `telegram_enabled` returns true only when all three are present (empty `SecretStr`, `None` user ID, or empty secret → false).
+- **Decision beyond the ticket:** one test caught that pydantic echoes the offending input in `str(ValidationError)` even when the validator's own message doesn't. Fix: `hide_input_in_errors=True` in `Settings.model_config`, applied model-wide (also protects `API_KEYS` and future secrets from echoing typos at startup).
+- `make api-test` → 84 passed. App still starts with no Telegram variables set (covered by `test_app_starts_without_telegram_settings`).

@@ -5,7 +5,7 @@
 ENV_FILE := .env.db
 COMPOSE  := docker compose --env-file $(ENV_FILE)
 
-.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset api-migrate api-revision api-test api-dev web-dev web-test web-build
+.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset api-migrate api-revision api-test api-dev telegram-check web-dev web-test web-build
 
 help: ## List available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -81,6 +81,16 @@ api-test: ## Run the API test suite in parallel
 
 api-dev: ## Start uvicorn with reload on 127.0.0.1:8000
 	@cd api && uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+telegram-check: ## Print whether Telegram is fully configured; prints a boolean, never a secret
+	@cd api && uv run python -c \
+		"from app.settings import get_settings, telegram_enabled; \
+		s = get_settings(); \
+		print('telegram_enabled:', telegram_enabled(s))"
+
+# Alias with a literal colon (needs the \: escape — a plain telegram:check
+# target would parse as "target telegram, prerequisite check").
+telegram\:check: telegram-check
 
 # --- Frontend (web/) ---------------------------------------------------------
 # The Vite dev proxy adds X-API-Key from web/.env.local (gitignored); the key
