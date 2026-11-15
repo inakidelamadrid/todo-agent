@@ -81,3 +81,81 @@ Registering the webhook URL with Telegram (`setWebhook`) and exposing the API
 to the internet are separate, later steps — see ticket
 `tickets/backend/BE-039-make-telegram-webhook-info.md` and
 `tickets/backend/BE-040-bot-setup-runbook-commands.md`.
+
+## Registering the webhook against the live bot (BE-039)
+
+Once steps 1–3 are done and `make telegram-check` prints
+`telegram_enabled: True`, you can point Telegram at your local API through a
+public tunnel. Everything below prints hosts and counts only — never the
+token, secret or full URL.
+
+### 1. Expose the API through ngrok
+
+A free ngrok URL changes on every restart, so re-register whenever it does.
+
+```bash
+make db-up
+make api-dev                 # terminal 1: API on 127.0.0.1:8000
+ngrok http 8000              # terminal 2: copy the https://<id>.ngrok.app URL
+```
+
+### 2. Register the webhook
+
+```bash
+make telegram-webhook url=https://<id>.ngrok.app
+```
+
+Expected output (host only):
+
+```
+Webhook set for <id>.ngrok.app
+```
+
+The command fails fast with a usage line when `url=` is missing, rejects
+`http://`, and refuses with a pointer at `api/.env` when the token or secret
+is unset. Telegram now delivers `message` and `callback_query` updates to
+`<url>/integrations/telegram/webhook` (that route is wired in a later ticket
+— until then Telegram gets 404s, which is expected and harmless).
+
+### 3. Inspect the webhook — first tool when the bot seems silent
+
+```bash
+make telegram-info
+```
+
+Healthy output:
+
+```
+url host: <id>.ngrok.app
+pending updates: 0
+allowed updates: message, callback_query
+last error: (none)
+```
+
+What each symptom means:
+
+| Symptom | Meaning | Action |
+|---|---|---|
+| `url host: (none)` | webhook not registered | run step 2 |
+| `pending updates` growing | Telegram delivers but we error/time out | check the API is running behind the tunnel |
+| `last error:` set | Telegram's last delivery failed, with its message | fix the cause (usually a dead tunnel), then re-run step 2 |
+| host ≠ current ngrok URL | stale tunnel URL | re-run step 2 with the new URL |
+
+### 4. Clean up when done
+
+Closing the ngrok terminal leaves Telegram posting to a dead URL. That's safe
+(errors accumulate in `last error`, updates queue briefly), but to leave a
+fully idle bot you can unregister:
+
+```bash
+cd api && uv run python -c "
+import asyncio
+from aiogram import Bot
+from app.settings import get_settings
+async def go():
+    bot = Bot(get_settings().telegram_bot_token.get_secret_value())
+    try: await bot.delete_webhook()
+    finally: await bot.session.close()
+asyncio.run(go())"
+```
+
