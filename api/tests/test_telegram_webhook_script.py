@@ -42,6 +42,10 @@ class _FakeBot:
         self.calls.append((url, kwargs))
         return True
 
+    async def delete_webhook(self) -> bool:
+        self.calls.append(("delete_webhook", {}))
+        return True
+
 
 def _run_set_with_fake_bot(monkeypatch: pytest.MonkeyPatch, **kwargs) -> str:
     _FakeBot.instances = []
@@ -121,3 +125,22 @@ def test_set_passes_secret_and_allowed_updates(monkeypatch: pytest.MonkeyPatch) 
     assert bot.session.closed  # session always closed
     assert out == "Webhook set for abc123.ngrok.app"
     assert FAKE_SECRET not in out and FAKE_TOKEN not in out
+
+
+def test_delete_unregisters_webhook(monkeypatch: pytest.MonkeyPatch) -> None:
+    _FakeBot.instances = []
+    monkeypatch.setattr(tw, "Bot", _FakeBot)
+    out = asyncio.run(tw._run_delete(SETTINGS))
+
+    bot = _FakeBot.instances[0]
+    assert bot.token == FAKE_TOKEN
+    assert bot.calls == [("delete_webhook", {})]
+    assert bot.session.closed
+    assert "idle" in out
+    assert FAKE_TOKEN not in out and FAKE_SECRET not in out
+
+
+def test_delete_refuses_without_token() -> None:
+    settings = Settings(_env_file=None)
+    with pytest.raises(SystemExit, match=r"api/\.env"):
+        asyncio.run(tw._run_delete(settings))

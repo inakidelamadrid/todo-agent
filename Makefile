@@ -5,7 +5,7 @@
 ENV_FILE := .env.db
 COMPOSE  := docker compose --env-file $(ENV_FILE)
 
-.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset api-migrate api-revision api-test api-dev telegram-check telegram-webhook telegram-info web-dev web-test web-build
+.PHONY: help check-env db-up db-down db-restart db-status db-logs db-psql db-redis-cli db-backup db-reset api-migrate api-revision api-test api-dev telegram-check telegram-webhook telegram-info telegram-bot-cleanup web-dev web-test web-build
 
 help: ## List available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -98,6 +98,9 @@ telegram-webhook: ## Register the dev webhook: make telegram-webhook url=https:/
 
 telegram-info: ## Show webhook status (no secrets)
 	@cd api && uv run python -m scripts.telegram_webhook info
+
+telegram-bot-cleanup: ## Unregister the webhook (idempotent; run when the tunnel closes)
+	@cd api && uv run python -m scripts.telegram_webhook delete
 # --- Frontend (web/) ---------------------------------------------------------
 # The Vite dev proxy adds X-API-Key from web/.env.local (gitignored); the key
 # never reaches the browser bundle.

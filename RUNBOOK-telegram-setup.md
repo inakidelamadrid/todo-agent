@@ -143,19 +143,16 @@ What each symptom means:
 
 ### 4. Clean up when done
 
-Closing the ngrok terminal leaves Telegram posting to a dead URL. That's safe
-(errors accumulate in `last error`, updates queue briefly), but to leave a
-fully idle bot you can unregister:
+Closing the ngrok terminal leaves Telegram posting to a dead URL — safe (errors
+accumulate in `last error`, updates queue briefly), but unregistering leaves
+the bot fully idle. Run this when you close the tunnel (or anytime; it is
+idempotent and independent of the tunnel's state):
 
 ```bash
-cd api && uv run python -c "
-import asyncio
-from aiogram import Bot
-from app.settings import get_settings
-async def go():
-    bot = Bot(get_settings().telegram_bot_token.get_secret_value())
-    try: await bot.delete_webhook()
-    finally: await bot.session.close()
-asyncio.run(go())"
+make telegram-bot-cleanup
+```
+
+```
+Webhook unregistered (bot is idle).
 ```
 

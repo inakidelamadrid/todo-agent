@@ -57,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     set_cmd = subcommands.add_parser("set", help="register the webhook with Telegram")
     set_cmd.add_argument("--url", required=True, help="https:// base URL (ngrok tunnel)")
     subcommands.add_parser("info", help="show webhook status")
+    subcommands.add_parser("delete", help="unregister the webhook")
     return parser
 
 
@@ -101,12 +102,27 @@ async def _run_info(settings: Settings) -> str:
     )
 
 
+async def _run_delete(settings: Settings) -> str:
+    """Unregister the webhook. Idempotent: safe with or without one set."""
+    token = _require_token(settings)
+    bot = Bot(token=token)
+    try:
+        await bot.delete_webhook()
+    finally:
+        await bot.session.close()
+    return "Webhook unregistered (bot is idle)."
+
+
 def main() -> None:
     """Entry point: parse args, dispatch, print the returned safe text."""
     args = build_parser().parse_args()
-    run = _run_set if args.command == "set" else _run_info
-    extra = (args.url,) if args.command == "set" else ()
-    print(asyncio.run(run(get_settings(), *extra)))
+    match args.command:
+        case "set":
+            print(asyncio.run(_run_set(get_settings(), args.url)))
+        case "delete":
+            print(asyncio.run(_run_delete(get_settings())))
+        case _:  # info
+            print(asyncio.run(_run_info(get_settings())))
 
 
 if __name__ == "__main__":
