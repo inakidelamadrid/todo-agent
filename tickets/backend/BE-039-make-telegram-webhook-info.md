@@ -1,6 +1,7 @@
 # BE-039: make telegram-webhook and make telegram-info
 
 - **Status:** todo
+- **Priority:** 5 — Very important (next in line); elevated by the user after BE-004 so webhook registration isn't blocked behind lower-priority work
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.5, §8
 - **Assigned agent / harness / model:**
