@@ -1,9 +1,9 @@
 # BE-005: Add aiogram and parse recorded update payloads
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-005-aiogram-and-update-fixtures`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.2, §5.5
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** none
 - **Can run in parallel with:** BE-004, BE-010
 - **Public endpoint?** no
@@ -65,12 +65,12 @@ This is the reviewer's first meeting with aiogram and with what a Telegram updat
 
 ## Acceptance criteria
 
-- [ ] `aiogram` is a runtime dependency in `api/pyproject.toml` and the lockfile is updated
-- [ ] The seven fixtures exist and parse
-- [ ] No fixture contains a real ID, name or token
-- [ ] No application code under `api/app/` imports aiogram yet
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `aiogram` is a runtime dependency in `api/pyproject.toml` and the lockfile is updated
+- [x] The seven fixtures exist and parse
+- [x] No fixture contains a real ID, name or token
+- [x] No application code under `api/app/` imports aiogram yet
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -98,3 +98,8 @@ Things that should *not* be in the diff: changes under `api/app/`; a `Dispatcher
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-005-aiogram-and-update-fixtures`. PyPI re-checked: aiogram **3.32.0, MIT, Python >=3.11,<3.16** — matches the ticket's evaluation.
+- Seven hand-written fixtures under `api/tests/fixtures/telegram/` (synthetic IDs 111111/999999/222222, unique update_ids 700000001–7); loader in `tests/telegram_fixtures.py`; nothing under `app/` imports aiogram.
+- **Incident fixed (BE-004 bug exposed):** `test_settings_telegram.py` built bare `Settings()`, which reads the developer's real `api/.env`. Once the dev completed the manual Telegram setup, those tests failed **and dumped the real token into pytest output** (local only, nothing uploaded; recommend `/revoke` + rotate in BotFather if desired). Fix: every construction in that test file now uses `Settings(_env_file=None)`; module docstring documents the rule.
+- `make api-test` → 99 passed.

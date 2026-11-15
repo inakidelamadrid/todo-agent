@@ -1,4 +1,8 @@
-"""Settings for the Telegram integration (BE-004): secrets stay secrets."""
+"""Settings for the Telegram integration (BE-004): secrets stay secrets.
+
+All constructions use ``_env_file=None`` so tests never read the developer's
+real ``api/.env`` — real tokens must never appear in test output.
+"""
 
 import pytest
 from pydantic import ValidationError
@@ -13,11 +17,11 @@ FIELDS = {
 
 
 def _settings(**overrides):
-    return Settings(**{**FIELDS, **overrides})
+    return Settings(_env_file=None, **{**FIELDS, **overrides})
 
 
 def test_app_starts_without_telegram_settings() -> None:
-    settings = Settings()
+    settings = Settings(_env_file=None)
     assert settings.telegram_bot_token.get_secret_value() == ""
     assert settings.telegram_webhook_secret.get_secret_value() == ""
     assert settings.telegram_allowed_user_id is None
@@ -27,7 +31,7 @@ def test_app_starts_without_telegram_settings() -> None:
 @pytest.mark.parametrize("missing", list(FIELDS))
 def test_telegram_enabled_needs_all_three(missing: str) -> None:
     absent = {"telegram_bot_token": "", "telegram_webhook_secret": "", "telegram_allowed_user_id": None}
-    assert telegram_enabled(Settings(**{**FIELDS, missing: absent[missing]})) is False
+    assert telegram_enabled(Settings(_env_file=None, **{**FIELDS, missing: absent[missing]})) is False
 
 
 def test_telegram_enabled_when_all_set() -> None:
@@ -43,7 +47,7 @@ def test_short_webhook_secret_is_rejected() -> None:
     assert _settings(telegram_webhook_secret="a" * 256)
 
     # And empty stays allowed.
-    assert Settings().telegram_webhook_secret.get_secret_value() == ""
+    assert Settings(_env_file=None).telegram_webhook_secret.get_secret_value() == ""
 
 
 def test_webhook_secret_with_bad_characters_is_rejected() -> None:
@@ -57,7 +61,7 @@ def test_webhook_secret_with_bad_characters_is_rejected() -> None:
 def test_secrets_do_not_appear_in_repr() -> None:
     token, secret = "123:abc-token", "s3cr3t-webhook-value"
     settings = Settings(
-        telegram_bot_token=token, telegram_webhook_secret=secret
+        _env_file=None, telegram_bot_token=token, telegram_webhook_secret=secret
     )
     text = repr(settings)
     assert token not in text

@@ -1,0 +1,15 @@
+{
+  "update_id": 700000005,
+  "message": {
+    "message_id": 105,
+    "date": 1763000004,
+    "from": {"id": 111111, "is_bot": false, "first_name": "Owner"},
+    "chat": {"id": 111111, "type": "private", "first_name": "Owner"},
+    "document": {
+      "file_id": "synthetic_document_file_id",
+      "file_unique_id": "synthetic_document_unique",
+      "mime_type": "application/pdf",
+      "file_size": 51200
+    }
+  }
+}

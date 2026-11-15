@@ -1,0 +1,16 @@
+{
+  "update_id": 700000006,
+  "callback_query": {
+    "id": "synthetic_callback_query_id",
+    "chat_instance": "synthetic_chat_instance",
+    "from": {"id": 111111, "is_bot": false, "first_name": "Owner"},
+    "message": {
+      "message_id": 106,
+      "date": 1763000005,
+      "from": {"id": 222222, "is_bot": true, "first_name": "Bot", "username": "synthetic_bot"},
+      "chat": {"id": 111111, "type": "private", "first_name": "Owner"},
+      "text": "pick an option"
+    },
+    "data": "placeholder"
+  }
+}
