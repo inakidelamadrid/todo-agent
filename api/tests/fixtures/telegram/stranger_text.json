@@ -1,0 +1,10 @@
+{
+  "update_id": 700000007,
+  "message": {
+    "message_id": 107,
+    "date": 1763000006,
+    "from": {"id": 999999, "is_bot": false, "first_name": "Stranger"},
+    "chat": {"id": 999999, "type": "private", "first_name": "Stranger"},
+    "text": "buy milk tomorrow"
+  }
+}
