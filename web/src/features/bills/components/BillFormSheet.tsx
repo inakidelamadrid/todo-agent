@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { isApiError } from '../api/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,7 +16,8 @@ interface Props {
   readonly bill: Bill | null
   readonly defaultMonth: MonthKey
   readonly onOpenChange: (open: boolean) => void
-  readonly onSave: (bill: Bill) => void
+  /** Rejects with ApiError on failure; 422 field errors are shown inline. */
+  readonly onSave: (bill: Bill, isNew: boolean) => Promise<void>
   readonly onDelete: (bill: Bill) => void
 }
 
@@ -34,12 +37,33 @@ const toDraft = (bill: Bill | null, month: MonthKey): Draft =>
     ? { ...bill, amount: (bill.estimatedCents / 100).toFixed(2), dueDay: String(bill.dueDay) }
     : { name: '', note: '', line: 'utilities', currency: 'MXN', amount: '', dueDay: '', recurrence: 'monthly', startMonth: month }
 
-type Errors = Partial<Record<'name' | 'amount' | 'dueDay' | 'startMonth', string>>
+type Errors = Partial<Record<'name' | 'note' | 'amount' | 'dueDay' | 'startMonth', string>>
+
+/** Server field names (camelCase) → form fields. */
+const SERVER_FIELD: Readonly<Record<string, keyof Errors>> = {
+  name: 'name',
+  note: 'note',
+  estimatedCents: 'amount',
+  dueDay: 'dueDay',
+  startMonth: 'startMonth',
+}
+
+const toFormErrors = (fieldErrors: Readonly<Record<string, string>>): Errors =>
+  Object.fromEntries(
+    Object.entries(fieldErrors)
+      .filter(([k]) => k in SERVER_FIELD)
+      .map(([k, msg]) => [SERVER_FIELD[k], msg]),
+  )
 
 const validate = (d: Draft): Errors => {
   const day = Number(d.dueDay)
   return {
-    ...(d.name.trim() ? {} : { name: 'Give the bill a name, like “CFE” or “Netflix”.' }),
+    ...(d.name.trim()
+      ? d.name.trim().length > 80
+        ? { name: 'Keep the name to 80 characters or fewer.' }
+        : {}
+      : { name: 'Give the bill a name, like “CFE” or “Netflix”.' }),
+    ...(d.note.trim().length > 200 ? { note: 'Keep the note to 200 characters or fewer.' } : {}),
     ...(toCents(d.amount) !== null && d.amount.trim() ? {} : { amount: 'Enter the usual amount, like 649.00.' }),
     ...(Number.isInteger(day) && day >= 1 && day <= 31 ? {} : { dueDay: 'Pick a day from 1 to 31.' }),
     ...(/^\d{4}-\d{2}$/.test(d.startMonth) ? {} : { startMonth: 'Pick the first month it is due.' }),
@@ -74,26 +98,45 @@ const FormBody = ({ bill, defaultMonth, onSave, onDelete, onCancel }: Omit<Props
   const [draft, setDraft] = useState<Draft>(() => toDraft(bill, defaultMonth))
   const [touched, setTouched] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const errors = touched ? validate(draft) : {}
-  const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }))
+  const [saving, setSaving] = useState(false)
+  const [serverErrors, setServerErrors] = useState<Errors>({})
+  const errors: Errors = { ...serverErrors, ...(touched ? validate(draft) : {}) }
+  const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => {
+    setServerErrors((e) => ({ ...e, [key]: undefined, ...(key === 'amount' ? { amount: undefined } : {}) }))
+    setDraft((d) => ({ ...d, [key]: value }))
+  }
   const invalid = (key: keyof Errors) => ({ 'aria-invalid': Boolean(errors[key]), 'aria-describedby': errors[key] ? `bill-${key}-error` : undefined })
 
   return (
     <form
       className="flex min-h-0 flex-1 flex-col"
       noValidate
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
         setTouched(true)
-        if (Object.keys(validate(draft)).length === 0) onSave(fromDraft(draft, bill?.id ?? crypto.randomUUID()))
+        if (saving || Object.keys(validate(draft)).length > 0) return
+        setSaving(true)
+        try {
+          await onSave(fromDraft(draft, bill?.id ?? ''), bill === null)
+        } catch (err) {
+          const fields = isApiError(err) ? toFormErrors(err.fieldErrors) : {}
+          setServerErrors(fields)
+          if (Object.keys(fields).length === 0) {
+            toast.error(bill ? 'Changes didn’t save' : 'Bill wasn’t added', {
+              description: isApiError(err) ? err.message : 'Something went wrong. Try again.',
+            })
+          }
+        } finally {
+          setSaving(false)
+        }
       }}
     >
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4">
         <Field id="bill-name" label="Name" error={errors.name}>
           <Input id="bill-name" value={draft.name} onChange={(e) => set('name')(e.target.value)} placeholder="e.g. CFE" autoFocus {...invalid('name')} />
         </Field>
-        <Field id="bill-note" label="Note (optional)">
-          <Input id="bill-note" value={draft.note} onChange={(e) => set('note')(e.target.value)} placeholder="e.g. Electricity · account 1234" />
+        <Field id="bill-note" label="Note (optional)" error={errors.note}>
+          <Input id="bill-note" value={draft.note} onChange={(e) => set('note')(e.target.value)} placeholder="e.g. Electricity · account 1234" {...invalid('note')} />
         </Field>
         <Field id="bill-line" label="Line">
           <Select value={draft.line} onValueChange={(v) => v && set('line')(v as Line)} items={LINES.map((l) => ({ value: l, label: LINE_META[l].label }))}>
@@ -141,7 +184,9 @@ const FormBody = ({ bill, defaultMonth, onSave, onDelete, onCancel }: Omit<Props
       <SheetFooter className="border-t">
         <div className="flex gap-2">
           <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>Cancel</Button>
-          <Button type="submit" className="flex-1">{bill ? 'Save changes' : 'Add bill'}</Button>
+          <Button type="submit" className="flex-1" disabled={saving}>
+            {saving ? 'Saving…' : bill ? 'Save changes' : 'Add bill'}
+          </Button>
         </div>
         {bill && (
           <Button

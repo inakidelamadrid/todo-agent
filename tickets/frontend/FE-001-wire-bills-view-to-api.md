@@ -1,8 +1,8 @@
 # FE-001: Wire the bills view to the API
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-001-wire-bills-view-to-api`; not committed, awaiting user approval)
 - **Workspace:** frontend
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / desktop app / Claude Opus 5.5
 - **Depends on:** BE-003 (bills and payments API, merged to `main`)
 
 ## Goal
@@ -139,3 +139,41 @@ Add these to the root `Makefile`:
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here. Never log keys or passwords.
+
+- **Proxy:**
+  - `vite.config.ts` proxies `/api/*` to `API_URL` and adds `X-API-Key` from a non-`VITE_` `API_KEY` read with `loadEnv`.
+  - Startup fails if `API_KEY` is missing.
+  - **Deviation (user decision):** the local backend uses the `change-me` placeholder, so the proxy only *warns* on `change-me` instead of failing. Change both sides before sharing.
+  - `make web-dev` accepts `web/.env.local` or `web/.env` (both gitignored); the human chose `web/.env`.
+- **Key never in the browser:**
+  - The production bundle has no key value and no `X-API-Key` (checked with grep).
+  - The bundle only contains help text naming the `API_KEY` variable.
+- **Client:**
+  - `features/bills/api/client.ts`: one `request()` helper and typed functions per endpoint.
+  - `ApiError` carries `status`, `message` and `fieldErrors`. 422 `loc` names map to camelCase field errors, and network failures become status 0.
+  - `toBill` strips the server timestamps.
+- **Store:**
+  - The Zustand `createBillsStore(api)` factory replaces `persist` and the seed (`data/seed.ts` deleted).
+  - It adds `billsStatus`, `loadError`, and a per-month `months` status cache.
+  - Mark paid, undo, edit and delete are optimistic and roll back on failure. Add waits for the server-assigned id.
+  - Delete's Undo re-creates the bill (new id) and its payments.
+- **Pure helpers:** `model/sync.ts` has `mergeMonthPayments`, `parseLegacy` and `planImport`.
+- **Import:**
+  - The banner appears only when the old `todo-agent.bills` key has bills **and** the API has none.
+  - Import and Discard both remove the key.
+  - Verified live: 11 bills and their payments imported, and the key was cleared.
+- **States:**
+  - Skeleton for the strip, network and table.
+  - `LoadErrorPanel` has copy for offline (status 0 / 5xx) and for 401, plus Retry.
+  - The rail shows "API offline" or "Key rejected".
+  - Sheet: Saving… state, 422 field errors inline, and client-side length limits (name ≤80, note ≤200) with friendly copy.
+- **Make targets:** `web-dev`, `web-test` and `web-build`.
+- **Tests:** 40 pass, including 23 new ones for the client, store and helpers. `npm run build` passes, and `impeccable detect` reports `[]`.
+- **Verified in Chrome against the running API:**
+  - Import.
+  - Mark paid with a different amount (MXN 512.30), which persists across a reload.
+  - Undo with requests forced to fail: it rolls back, with an error toast.
+  - Month switch with requests failing: the offline panel appears, and Retry recovers.
+  - The 422 name error shows inline.
+  - Captures at desktop (light) and mobile (light and dark) look right.
+- **Not verified live:** the 401 screen (unit-tested only), and the delete + Undo round trip (unit-tested only).
