@@ -1,10 +1,10 @@
 # BE-039: make telegram-webhook and make telegram-info
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-039-telegram-webhook-info`; not committed — awaiting user approval)
 - **Priority:** 5 — Very important (next in line); elevated by the user after BE-004 so webhook registration isn't blocked behind lower-priority work
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.5, §8
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-004, BE-005
 - **Can run in parallel with:** BE-006 onwards
 - **Public endpoint?** no
@@ -75,11 +75,11 @@ telegram-info: ## Show webhook status (no secrets)
 
 ## Acceptance criteria
 
-- [ ] `make telegram-webhook url=…` registers the URL with the secret and the two allowed update types
-- [ ] `make telegram-info` output contains no secret
-- [ ] Both targets appear in `make help`
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `make telegram-webhook url=…` registers the URL with the secret and the two allowed update types
+- [x] `make telegram-info` output contains no secret
+- [x] Both targets appear in `make help`
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -116,3 +116,11 @@ Things that should *not* be in the diff: prod deployment; BotFather steps.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- **Execution note:** the dependency BE-005 (`aiogram`) was not done, so it was implemented first on its own branch (`idelamadrid/BE-005-aiogram-and-update-fixtures`); this branch sits on top of it — **review/merge BE-005's PR before this one**.
+- aiogram v3.32 API verified by introspection before coding: `Bot.set_webhook(url, *, secret_token, allowed_updates)`, `get_webhook_info() -> WebhookInfo`, and the `session.close()` cleanup contract.
+- `format_webhook_info` gained a `redact=` denylist beyond the ticket's spec: a test with a secret embedded in `last_error_message` showed the pass-through formatter would echo it. Output now scrubs known secret values (`***`) wherever they appear.
+- `--url` must start with `https://`; the script appends `/integrations/telegram/webhook` and trims a trailing slash. Missing token/secret → `SystemExit` with a pointer at `api/.env` (no values echoed).
+- **Live-verified with the real dev bot:** probe webhook registered, `make telegram-info` showed the host, `pending: 0`, `allowed updates: message, callback_query`, no error; probe webhook then deleted (`delete_webhook`) to leave Telegram idle state.
+- `make api-test` → 106 passed (7 of them new, all from this ticket's Test list plus boundary cases).
+- Open question for review: `make telegram-webhook` with no `url=` fails with the usage line (exit 1) — verified.
