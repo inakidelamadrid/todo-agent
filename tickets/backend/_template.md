@@ -1,6 +1,7 @@
 # BE-000: Title
 
 - **Status:** todo
+- **Priority:** 3 (5 = very important … 1 = can hold; see [../README.md](../README.md#priority))
 - **Workspace:** backend
 - **Assigned agent / harness / model:**
 - **Depends on:** (e.g. FE-001, or none)
