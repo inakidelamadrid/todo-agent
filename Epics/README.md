@@ -19,6 +19,7 @@ Epics are feature-level requirements, polished by the human before they become w
 |---|---|---|
 | [EPIC-007: Email integration](EPIC-007-email-integration.md) | draft | Outbound transactional email (domain auth, templates, queue, bounces, unsubscribe), inbound forward-to-app routing, Mailpit for dev |
 | [EPIC-008: Telegram integration](EPIC-008-telegram-integration.md) | in-tickets | One private bot: verified webhook, allowlist, idempotency, router to features, central outbound service with quiet hours/caps, the n8n AI contract, dev/prod bots |
+| [EPIC-009: User login with Clerk](EPIC-009-user-login-clerk.md) | draft | Sign-in for the owner with Clerk: sign-in screen in the web app, verified session tokens in the API, API keys kept for machines, owner-only allowlist |
 
 ## Lifecycle
 
@@ -30,7 +31,7 @@ Several epics need these. Build them first, as their own tickets.
 
 | Foundation | Why | Needed by |
 |---|---|---|
-| **F-1 User login** | Personal and sensitive data, plus a second person (EPIC-001). The API key covers machines, not people. Session login for me (passkey or email magic link), with step-up re-auth for sensitive actions. | 001–006 |
+| **F-1 User login** | Personal and sensitive data, plus a second person (EPIC-001). The API key covers machines, not people. Session login for me (passkey or email magic link), with step-up re-auth for sensitive actions. Delivered by **EPIC-009** (Clerk; ngrok's auth was evaluated and rejected). | 001–006 |
 | **F-2 Scoped API keys** | Separate, revocable keys per integration (`web-proxy`, `n8n-telegram`, …), each with a label and scopes such as `expenses:write` or `inbox:write`. | 002, 003, 007, 008 |
 | **F-3 Google Drive integration** | OAuth with the `drive.file` scope (the app only sees files it created), a root folder, and an upload/link service. The database stores only file IDs and hashes. | 001, 002 (receipts), 006 |
 | **F-4 File storage and hashing** | SHA-256 of every stored document, so later tampering can be detected. | 001, 002, 006, 007 (inbound attachments) |
@@ -62,7 +63,7 @@ Unblocks BE-031 to BE-033 (Telegram delivery). Running the worker and scheduler 
 
 ## Suggested order
 
-1. **Foundations:** F-1 login, F-2 scoped keys, F-6 scheduler, then EPIC-008 Telegram and EPIC-007 Email (outbound first).
+1. **Foundations:** F-1 login (EPIC-009), F-2 scoped keys, F-6 scheduler, then EPIC-008 Telegram and EPIC-007 Email (outbound first).
 2. **EPIC-004 Deadline radar** (bills + appointments adapters): quick win on existing data.
 3. **EPIC-003 Brain dump + What now?:** introduces Tasks, which EPIC-004 and EPIC-005 use.
 4. **EPIC-002 Expenses** and **EPIC-006 Documents vault** (needs F-3 Drive and F-4).
