@@ -1,9 +1,9 @@
 # BE-061: Real token decoder: RS256 signature check with PyJWT
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-061-rs256-token-decoder`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design, §5.3, §7 Security
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-058, BE-060
 - **Can run in parallel with:** FE-009 to FE-011
 - **Public endpoint?** no
@@ -86,13 +86,13 @@ def make_rs256_decoder(public_key_pem: str) -> DecodeToken:
 
 ## Acceptance criteria
 
-- [ ] `pyjwt[crypto]` is installed with `uv add`, and the version matches the registry check
-- [ ] `make_rs256_decoder` pins RS256 and returns `None` for wrong-key, tampered, `HS256`, `none` and garbage tokens
-- [ ] No network call happens per request (the key comes from settings)
-- [ ] `get_token_decoder` stays closed when `CLERK_JWT_PUBLIC_KEY` is empty
-- [ ] Tests use generated keys only, and no token or key appears in any log or test output
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `pyjwt[crypto]` is installed with `uv add`, and the version matches the registry check
+- [x] `make_rs256_decoder` pins RS256 and returns `None` for wrong-key, tampered, `HS256`, `none` and garbage tokens
+- [x] No network call happens per request (the key comes from settings)
+- [x] `get_token_decoder` stays closed when `CLERK_JWT_PUBLIC_KEY` is empty
+- [x] Tests use generated keys only, and no token or key appears in any log or test output
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -122,3 +122,10 @@ Things that should *not* be in the diff: Any check of `exp`, `azp` or `sub` (tha
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-061-rs256-token-decoder` from main (BE-058 + BE-060 merged). Registry re-check: **PyJWT 2.15.1, MIT** — matches the ticket's evaluation; `uv add "pyjwt[crypto]"` pulled `cryptography 50.0.2`.
+- `make_rs256_decoder`: pinned `algorithms=["RS256"]`; only `verify_exp/nbf/aud/iss/iat` off (signature stays on); every `PyJWTError` → `None`; no logging of tokens.
+- `get_token_decoder`: empty key → `reject_all` (closed); else `_cached_decoder` (functools.cache keyed by normalized PEM) so the key is wrapped once per process.
+- **Testing detail worth reviewing:** PyJWT refuses to *encode* an HS256 token with a PEM-looking key (built-in asymmetric-key guard), so the algorithm-confusion forgery is handcrafted in the test with `hmac`+`base64url` — the way an attacker actually builds it.
+- Boundary verified: `test_expired_token_still_decodes` proves expiry stays out of this layer; one-line `\n` PEM works end-to-end via `test_get_token_decoder_accepts_configured_key`; cached decoder returns the identical object per key.
+- `make api-test` → 163 passed (13 new); `git diff api/pyproject.toml` shows exactly one dependency line; no `print`/`logging` in `session_token.py`.
