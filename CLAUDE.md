@@ -81,6 +81,14 @@ One model, shared by frontend and backend. Change both sides together.
 
 - Keep responses **shorter than usual**: lead with the result, skip filler and long recaps.
 
+## Ticket work: start ritual
+
+When the user says **"Start working on feature/ticket XYZ"** (any ticket id):
+
+1. Switch to `main` and pull latest.
+2. Read the ticket's `Depends on:` list. If any dependency's PR is not yet merged into `main`, **stop and report** which ones are missing — do not start.
+3. Otherwise create branch `idelamadrid/<ticket-id>` and start the work.
+
 ## Never send without asking
 
 - **Never send, post, publish, share, email, message, push, or deploy anything without asking first** and getting an explicit yes.

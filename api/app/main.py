@@ -16,8 +16,8 @@ from fastapi import Depends, FastAPI
 
 from app.bills.router import bills_router, payments_router
 from app.db import build_engine, dispose_engine
-from app.routes import public
-from app.security import API_KEY_HEADER_NAME, require_principal
+from app.routes import me, public
+from app.security import API_KEY_HEADER_NAME, require_principal, require_user
 from app.settings import clerk_enabled, get_settings
 
 
@@ -74,6 +74,8 @@ def create_app() -> FastAPI:
     # session) or a machine (API key) through one shared dependency.
     app.include_router(bills_router, dependencies=[Depends(require_principal)])
     app.include_router(payments_router, dependencies=[Depends(require_principal)])
+    # A person, not a script: machines get 403 here (BE-064).
+    app.include_router(me.router, dependencies=[Depends(require_user)])
     return app
 
 
