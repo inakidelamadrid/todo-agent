@@ -20,6 +20,16 @@ def parse_api_keys(raw: str) -> tuple[str, ...]:
     return tuple(key.strip() for key in raw.split(",") if key.strip())
 
 
+def parse_csv(raw: str) -> tuple[str, ...]:
+    """Split a comma-separated env value: trim, drop empties."""
+    return tuple(part.strip() for part in raw.split(",") if part.strip())
+
+
+def normalize_pem(raw: str) -> str:
+    """Turn escaped ``\\n`` into real newlines (PEM on one .env line) and trim."""
+    return raw.strip().replace("\\n", "\n")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         # API config from .env, database credentials from the repo-root
@@ -43,6 +53,10 @@ class Settings(BaseSettings):
     telegram_bot_token: SecretStr = SecretStr("")
     telegram_webhook_secret: SecretStr = SecretStr("")
     telegram_allowed_user_id: int | None = None
+
+    clerk_jwt_public_key: str = ""
+    clerk_authorized_parties: str = ""
+    clerk_allowed_user_ids: str = ""
 
     @field_validator("api_keys")
     @classmethod
@@ -83,6 +97,15 @@ def telegram_enabled(settings: Settings) -> bool:
         settings.telegram_bot_token.get_secret_value()
         and settings.telegram_webhook_secret.get_secret_value()
         and settings.telegram_allowed_user_id is not None
+    )
+
+
+def clerk_enabled(settings: Settings) -> bool:
+    """True only when all three Clerk values are configured; unset means deny."""
+    return bool(
+        normalize_pem(settings.clerk_jwt_public_key)
+        and parse_csv(settings.clerk_authorized_parties)
+        and parse_csv(settings.clerk_allowed_user_ids)
     )
 
 
