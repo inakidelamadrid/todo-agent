@@ -1,9 +1,9 @@
 # FE-009: Install the Clerk React SDK and add `ClerkProvider`
 
-- **Status:** todo
+- **Status:** done (PR open; valid-key path awaits the human step)
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §5.7 Configuration and secrets
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
 - **Depends on:** none
 - **Can run in parallel with:** BE-058 to BE-064
 - **Review size:** ~45 lines, 4 files plus tests, ~10 min
@@ -65,12 +65,12 @@ One new dependency, introduced alone so the reviewer meets Clerk's SDK in isolat
 
 ## Acceptance criteria
 
-- [ ] `@clerk/react` is installed with `npm install` and its version matches the registry check
+- [x] `@clerk/react` is installed with `npm install` and its version matches the registry check
 - [ ] With a valid key in `web/.env.local` the app renders exactly as before
-- [ ] With the key missing or a secret key, the missing-config message shows and the value is never printed
-- [ ] `web/.env.example` documents the variable
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] With the key missing or a secret key, the missing-config message shows and the value is never printed
+- [x] `web/.env.example` documents the variable
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -96,3 +96,9 @@ Things that should *not* be in the diff: Any sign-in UI, `useAuth`, a gate, toke
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-009`. Registry check: `@clerk/react` 6.18.8, MIT, peer React `~19.3.0-0`; installed as the only new dependency.
+- `readPublishableKey` written test-first (6 tests). `make web-test` → 46 passed; `make web-build` passes.
+- Checked in Chrome with the key blank: the "Sign-in is not configured" screen renders.
+- Not verified: the valid-key path (no publishable key on this machine yet), so that criterion stays unchecked until the human step is done.
+- `web/src/vite-env.d.ts` is new (the project had none; `vite/client` comes from tsconfig `types`).
