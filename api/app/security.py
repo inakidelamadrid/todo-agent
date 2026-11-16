@@ -141,3 +141,15 @@ def require_principal(
             status_code=result.status, detail=result.detail, headers=headers
         )
     return result
+
+
+def require_user(
+    principal: Annotated[Principal, Depends(require_principal)],
+) -> User:
+    """A person, not a script (BE-064). Reads nothing: composes require_principal."""
+    if not isinstance(principal, User):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="A signed-in user is required",
+        )
+    return principal

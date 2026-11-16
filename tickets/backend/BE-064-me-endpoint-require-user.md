@@ -1,9 +1,9 @@
 # BE-064: `GET /me` and the `require_user` dependency
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-064-me-endpoint`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.5 `GET /me`, §5.3
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-063
 - **Can run in parallel with:** FE-009 to FE-016
 - **Public endpoint?** no
@@ -65,12 +65,12 @@ None new. Standard library and what is already installed.
 
 ## Acceptance criteria
 
-- [ ] `GET /me` returns `{"userId", "kind": "user"}` in camelCase for the owner
-- [ ] A machine with a valid key gets `403`; missing or wrong credentials get `401`
-- [ ] `require_user` exists and is the only 'person required' check
-- [ ] The route is mounted behind a dependency, not public
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `GET /me` returns `{"userId", "kind": "user"}` in camelCase for the owner
+- [x] A machine with a valid key gets `403`; missing or wrong credentials get `401`
+- [x] `require_user` exists and is the only 'person required' check
+- [x] The route is mounted behind a dependency, not public
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -96,3 +96,10 @@ Things that should *not* be in the diff: User profile data, database access, Cle
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-064-me-endpoint`. `require_user` composes `require_principal` (reads nothing itself; 403 "A signed-in user is required" for machines). Route mounted with `dependencies=[Depends(require_user)]`; handler takes the principal and asserts `User` (the guard is the only person-check).
+- `MeResponse` copy of the camelCase+frozen config (per ticket, `_CamelModel` not imported).
+- Deviation noted: handler asserts `isinstance` after the router-level guard — the assert is unreachable in production but documents the invariant; happy with it as defense in depth.
+- Caught while testing: `@router.get("")` on a prefix-less router is a `FastAPIError`; route uses the full `/me` path.
+- `make api-test` → 195 passed, twice.
+- This branch also carries the new CLAUDE.md "Ticket work: start ritual" rule (user-requested carry-over; rule used to start this ticket).
