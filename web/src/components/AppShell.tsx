@@ -1,7 +1,7 @@
 import { ReceiptText } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-const BrandMark = () => (
+export const BrandMark = () => (
   <svg viewBox="0 0 32 32" className="size-8" aria-hidden="true">
     <path d="M2 10h11l6 6h11" stroke="var(--line-streaming)" strokeWidth="3" fill="none" strokeLinecap="round" />
     <path d="M2 16h28" stroke="var(--line-telecom)" strokeWidth="3" fill="none" strokeLinecap="round" />

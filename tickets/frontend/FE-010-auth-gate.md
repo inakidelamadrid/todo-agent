@@ -1,9 +1,9 @@
 # FE-010: `AuthGate`: loading, error, signed-out and signed-in views
 
-- **Status:** todo
+- **Status:** done (committed on `idelamadrid/FE-010`; signed-in path awaits a manual Google sign-in)
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.1 Sign-in and sign-out (states to polish), §5.2
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
 - **Depends on:** FE-009
 - **Can run in parallel with:** BE-058 to BE-064
 - **Review size:** ~70 lines, 4 files plus tests, ~12 min
@@ -62,13 +62,13 @@ States to polish: loading, error, hover, focus (visible ring), phone width, ligh
 
 ## Acceptance criteria
 
-- [ ] `resolveAuthView` is pure and its four cases pass
+- [x] `resolveAuthView` is pure and its four cases pass
 - [ ] A signed-out browser shows the placeholder prompt and none of the app; a signed-in one shows the app
-- [ ] While Clerk starts, neither the app nor the prompt flashes
+- [x] While Clerk starts, neither the app nor the prompt flashes
 - [ ] The error view has a working **Try again**, and every view works with the keyboard
 - [ ] Checked at desktop and phone width, in light and dark
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -94,3 +94,9 @@ Things that should *not* be in the diff: The styled sign-in screen, the account 
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-010`. Load failure is read from `useClerk().status === "error"`, the same value `ClerkFailed` checks in `@clerk/react` 6.18.8.
+- `BrandMark` is now exported from `AppShell.tsx` so the gate can reuse it (one-word change, not in the ticket file list).
+- `make web-test` → 50 passed (4 new); `make web-build` passes.
+- Checked in Chrome, dark theme, desktop width: signed-out shows the prompt and none of the app; loading shows the pulsing mark; with an unreachable Clerk host the error view shows after Clerk gives up (about 10 s).
+- Not checked: the signed-in path (needs a real Google sign-in), clicking **Try again**, light theme and phone width. Those criteria stay unchecked.
