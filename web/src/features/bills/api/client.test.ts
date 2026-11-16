@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Bill } from '../model/types'
-import { ApiError, createBillsApi, toFieldErrors } from './client'
+import { createBillsApi } from './client'
 
 const bill: Bill = {
   id: 'b1',
@@ -71,39 +71,5 @@ describe('bills API client', () => {
     const del = setup(json(204, undefined))
     await del.api.deletePayment('b1', '2026-11')
     expect(call(del.fetchMock)).toMatchObject({ url: '/api/bills/b1/payments/2026-11', method: 'DELETE' })
-  })
-
-  it.each([
-    [401, { detail: 'Invalid or missing API key' }, 'Invalid or missing API key'],
-    [404, { detail: 'Bill not found' }, 'Bill not found'],
-    [500, null, 'Request failed (500)'],
-  ])('maps %s to ApiError', async (status, body, message) => {
-    const { api } = setup(json(status, body))
-    const error = await api.listBills().catch((e: unknown) => e)
-    expect(error).toBeInstanceOf(ApiError)
-    expect(error).toMatchObject({ status, message })
-  })
-
-  it('maps 422 validation details to camelCase field errors', async () => {
-    const detail = [
-      { loc: ['body', 'estimatedCents'], msg: 'Input should be greater than or equal to 0' },
-      { loc: ['body', 'dueDay'], msg: 'Input should be less than or equal to 31' },
-    ]
-    const { api } = setup(json(422, { detail }))
-    const error = (await api.createBill({ ...bill }).catch((e: unknown) => e)) as ApiError
-    expect(error.status).toBe(422)
-    expect(error.fieldErrors).toEqual({
-      estimatedCents: 'Input should be greater than or equal to 0',
-      dueDay: 'Input should be less than or equal to 31',
-    })
-  })
-
-  it('reports a network failure as status 0', async () => {
-    const { api } = setup(new TypeError('Failed to fetch'))
-    await expect(api.listBills()).rejects.toMatchObject({ status: 0, message: 'Can’t reach the bills API' })
-  })
-
-  it('ignores non-array 422 details', () => {
-    expect(toFieldErrors('Bill is not due')).toEqual({})
   })
 })

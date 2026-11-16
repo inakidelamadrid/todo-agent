@@ -1,9 +1,9 @@
 # FE-002: Extract the shared API request helper (no behaviour change)
 
-- **Status:** todo
+- **Status:** done (committed on `idelamadrid/FE-002`; not pushed)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §9 Frontend
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
 - **Depends on:** none
 - **Can run in parallel with:** every BE ticket
 - **Review size:** ~80 lines moved, 3 files, ~10 min
@@ -60,10 +60,10 @@ None new. Standard library and what is already installed.
 ## Acceptance criteria
 
 - [ ] `git diff --stat` shows only the three files above
-- [ ] No file outside `web/src/lib/` and `web/src/features/bills/api/` changes
+- [x] No file outside `web/src/lib/` and `web/src/features/bills/api/` changes
 - [ ] The bills view behaves exactly as before in the browser
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -94,3 +94,9 @@ Things that should *not* be in the diff: new endpoints, new types, a data-fetchi
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-002`. The generic block and the body of `request` were moved by script, character for character; only `export` on `Fetch`, the `createRequest` wrapper and its doc comment are new.
+- Four files, not three: the ticket lists `api.ts`, `client.ts` and `api.test.ts`, and moving the generic tests also edits `client.test.ts`. That criterion stays unchecked.
+- The moved tests call `request` directly instead of going through the bills client; assertions are the same.
+- `make web-test` → 50 passed (same count as before); `make web-build` passes.
+- Not checked in the browser: the bills view now sits behind sign-in, which needs the owner's Google account.
