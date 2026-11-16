@@ -31,17 +31,25 @@ Do this with the **development instance** only; production is a later decision.
 3. In **Users**, open your user and copy the **User ID** (looks like
    `user_2abc…`).
 
-## 4. Copy the JWT public key
+## 4. Copy the JWKS public key
 
-1. Dashboard → **API keys** → **Show JWT public key** → **PEM format**.
+1. Dashboard → **Developers** → **API keys**. The page shows several values;
+   the one we need is **"JWKS Public Key"** — copy the full PEM (it starts
+   with `-----BEGIN PUBLIC KEY-----`).
 2. Paste it in `api/.env` on **one line**, with newlines written as `\n`
-   (the backend expands them):
+   (the backend expands them; empty placeholders are already in the file):
 
    ```
    CLERK_JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----\nMIIB...\n-----END PUBLIC KEY-----
    ```
 
    The public key is public by design, but still keep it out of git.
+
+**Values on that page we do *not* need** (verified against the manual JWT
+verification docs): `Frontend API URL`, `Backend API URL`, `JWKS URL` (we
+pin the static public key instead of fetching a JWKS per request — no
+network per verification), `Latest API version`. Everything the backend
+reads is the public key plus the dashboard user ID.
 
 ## 5. Fill the three variables in `api/.env`
 
