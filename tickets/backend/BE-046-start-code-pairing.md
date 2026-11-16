@@ -4,7 +4,7 @@
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.2 Allowlist, open question 3
 - **Assigned agent / harness / model:**
-- **Depends on:** BE-009, BE-021, F-1
+- **Depends on:** BE-009, BE-021, BE-064 (EPIC-009 delivers F-1)
 - **Can run in parallel with:** none
 - **Public endpoint?** no
 - **Review size:** to be estimated; likely two or three tickets
