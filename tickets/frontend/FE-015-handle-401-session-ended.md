@@ -1,9 +1,9 @@
 # FE-015: A `401` from the API ends the session calmly
 
-- **Status:** todo
+- **Status:** review
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.2 Session handling
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)
 - **Depends on:** FE-013
 - **Can run in parallel with:** FE-014
 - **Review size:** ~50 lines, 4 files plus tests, ~12 min
@@ -62,11 +62,11 @@ None new. Standard library and what is already installed.
 ## Acceptance criteria
 
 - [ ] A `401` signs the user out and shows the sign-in screen with one calm toast
-- [ ] Parallel `401`s produce one toast
-- [ ] Other errors (`422`, `500`, network) behave exactly as before
-- [ ] The request still throws `ApiError`, so screens' own error handling is unchanged
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] Parallel `401`s produce one toast
+- [x] Other errors (`422`, `500`, network) behave exactly as before
+- [x] The request still throws `ApiError`, so screens' own error handling is unchanged
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -89,3 +89,12 @@ Things that should *not* be in the diff: The `403` screen, retries, token refres
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-015`.
+- Added optional `onAuthFailure?: (status: 401 | 403) => void` to `createRequest` in `web/src/lib/api.ts`; `request` invokes it on `401` or `403` and still throws `ApiError`.
+- Added pure `describeAuthFailure` and table-dispatched `handleAuthFailure` in `web/src/features/auth/authFailure.ts` (`'session-ended'` calls `Clerk?.signOut()` and `toast('Your session ended. Please sign in again.', { id: 'session-ended' })`; `'forbidden'` is a no-op for FE-016).
+- Wired `handleAuthFailure` into `createBillsApi` in `web/src/features/bills/api/client.ts`.
+- Moved `<Toaster position="bottom-center" />` outside `<AuthGate>` in `web/src/App.tsx` so the `'session-ended'` toast stays visible when `<AuthGate>` unmounts `<AppShell>` and renders `<SignInScreen />`.
+- Local vs store state note: `useBillsStore` and `useBillsViewStore` (loaded bills/payments, selected month, focused line) live in module-level Zustand stores and survive unmount; unsaved draft inputs inside `BillFormSheet` and `MarkPaidPopover` live in local component state and reset when the gate unmounts the shell.
+- `make web-test` → 73 passed (7 new across `authFailure.test.ts` and `api.test.ts`); `make web-build` passes.
+- End-to-end manual browser check with a rotated `CLERK_JWT_PUBLIC_KEY` left unchecked for human verification.

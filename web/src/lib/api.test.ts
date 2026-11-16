@@ -102,4 +102,23 @@ describe('request with a token getter', () => {
     await request('POST', '/bills', { name: 'CFE' })
     expect(headersOf(fetchMock)).toEqual({ Accept: 'application/json', 'Content-Type': 'application/json' })
   })
+
+  it('calls onAuthFailure for 401 and still throws ApiError', async () => {
+    const onAuthFailure = vi.fn()
+    const fetchMock = vi.fn(async () => json(401, { detail: 'Invalid or missing credentials' }))
+    const request = createRequest(fetchMock as unknown as typeof fetch, '/api', undefined, onAuthFailure)
+
+    await expect(request('GET', '/bills')).rejects.toMatchObject({ status: 401 })
+    expect(onAuthFailure).toHaveBeenCalledTimes(1)
+    expect(onAuthFailure).toHaveBeenCalledWith(401)
+  })
+
+  it('does not call onAuthFailure for 500', async () => {
+    const onAuthFailure = vi.fn()
+    const fetchMock = vi.fn(async () => json(500, null))
+    const request = createRequest(fetchMock as unknown as typeof fetch, '/api', undefined, onAuthFailure)
+
+    await expect(request('GET', '/bills')).rejects.toMatchObject({ status: 500 })
+    expect(onAuthFailure).not.toHaveBeenCalled()
+  })
 })
