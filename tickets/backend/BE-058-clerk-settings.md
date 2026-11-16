@@ -1,9 +1,9 @@
 # BE-058: Clerk settings: three env vars and their parsers
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-058-clerk-settings`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.4 Owner allowlist, §5.7 Configuration and secrets
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** none
 - **Can run in parallel with:** FE-009, BE-059
 - **Public endpoint?** no
@@ -77,12 +77,12 @@ Create the Clerk application (development instance): enable Google, set sign-up 
 
 ## Acceptance criteria
 
-- [ ] `Settings` has the three fields, defaulting to empty, and the app still starts with only `API_KEYS` set
-- [ ] `parse_csv`, `normalize_pem` and `clerk_enabled` are pure functions with the tests above
-- [ ] `api/.env.example` documents all three variables, with no real value
-- [ ] A validation error never echoes a Clerk value (the model already sets `hide_input_in_errors`)
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `Settings` has the three fields, defaulting to empty, and the app still starts with only `API_KEYS` set
+- [x] `parse_csv`, `normalize_pem` and `clerk_enabled` are pure functions with the tests above
+- [x] `api/.env.example` documents all three variables, with no real value
+- [x] A validation error never echoes a Clerk value (the model already sets `hide_input_in_errors`)
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -108,3 +108,9 @@ Things that should *not* be in the diff: A validator that refuses to start (BE-0
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-058-clerk-settings`. Three fields + `parse_csv`, `normalize_pem`, `clerk_enabled` in `settings.py`; vars documented in `api/.env.example`; `parse_api_keys` untouched as instructed.
+- Tests use `Settings(_env_file=None)` everywhere (the BE-005 rule) so a developer's real `api/.env` can never leak into output.
+- One correction while testing: the ticket's "non-empty after parsing" applies `parse_csv` to the two list fields and `normalize_pem`+trim to the PEM — a separator-only PEM (",") is technically non-empty, so the false-case for it is only tested on CSV fields.
+- `make api-test` → 115 passed (6 new).
+- **Runbook:** `RUNBOOK-clerk-setup.md` (repo root) walks the human step: create the dev application, Google sign-in, Restricted sign-up, create the user, copy the JWT public key PEM and user ID, fill `api/.env`, validate with a boolean-only one-liner (`clerk_enabled: True`).
