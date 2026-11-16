@@ -1,8 +1,9 @@
-import { SignInButton, useAuth, useClerk } from '@clerk/react'
+import { useAuth, useClerk } from '@clerk/react'
 import type { ReactNode } from 'react'
 import { BrandMark } from '@/components/AppShell'
 import { Button } from '@/components/ui/button'
 import { resolveAuthView } from './authView'
+import { SignInScreen } from './SignInScreen'
 
 const Centered = ({ children }: { readonly children: ReactNode }) => (
   <main className="grid min-h-dvh place-items-center bg-background px-6 text-foreground">
@@ -34,13 +35,5 @@ export const AuthGate = ({ children }: { readonly children: ReactNode }) => {
         <Button onClick={() => window.location.reload()}>Try again</Button>
       </Centered>
     )
-  return (
-    <Centered>
-      <BrandMark />
-      <p className="text-sm leading-relaxed text-muted-foreground">Sign in to continue.</p>
-      <SignInButton>
-        <Button>Sign in</Button>
-      </SignInButton>
-    </Centered>
-  )
+  return <SignInScreen />
 }
