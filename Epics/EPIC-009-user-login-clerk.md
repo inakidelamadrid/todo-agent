@@ -1,6 +1,6 @@
 # EPIC-009: User login with Clerk (infra)
 
-- **Status:** draft
+- **Status:** in-tickets
 - **Type:** infrastructure (formalizes foundation **F-1 User login**)
 - **Owner:** Ignacio
 - **Depends on:** none
@@ -162,53 +162,56 @@ Nothing in the database. Clerk holds the user and sessions.
 - [ ] An expired or tampered token gets `401`.
 - [ ] A machine with a valid `X-API-Key` still gets through; `GET /me` refuses it with `403`.
 - [ ] No API key in the web bundle or added by the dev proxy.
-- [ ] A production build of the web app can sign in and call the API.
+- [ ] A production build of the web app can sign in (calling the API from it waits for the hosting decision).
 - [ ] `make api-test` and `make web-test` pass.
 
-## 9. Proposed ticket breakdown (draft)
+## 9. Ticket breakdown
 
-Not unfolded yet. Rough shape, to be sliced with the unfold-epic skill once the open questions are answered.
+Backend tickets and frontend tickets can run in parallel until FE-013, which needs BE-063. Step-up re-auth (5.6) is deferred to EPIC-006 and has no ticket here.
 
-**Human steps**
-
-- Create the Clerk application (development instance), choose sign-in methods, set sign-up to Restricted, create my user, copy the keys into the env files.
+**Human steps (before the first manual check):** create the Clerk application (development instance), enable Google, set sign-up to **Restricted**, sign in once to create your user, then copy the three API values (BE-058) and the publishable key (FE-009) into the env files.
 
 **Backend**
 
-1. Clerk settings (three env vars, start-up validation).
-2. `Principal` types and the pure claim checks.
-3. Token verifier port and a fake.
-4. Real verifier adapter (adds the one new package).
-5. Shared dependency; switch the routers; update the OpenAPI schemes.
-6. `GET /me`.
+1. [BE-058](../tickets/backend/BE-058-clerk-settings.md): Clerk settings and parsers. Depends on: none
+2. [BE-059](../tickets/backend/BE-059-principal-and-claim-checks.md): `Principal` types and pure claim checks. Depends on: none
+3. [BE-060](../tickets/backend/BE-060-token-decoder-port-and-fake.md): Token decoder port, `verify_session`, fake. Depends on: BE-059
+4. [BE-061](../tickets/backend/BE-061-rs256-token-decoder-pyjwt.md): RS256 decoder with `pyjwt[crypto]`. Depends on: BE-058, BE-060
+5. [BE-062](../tickets/backend/BE-062-require-principal-dependency.md): `require_principal` dependency. Depends on: BE-058, BE-060
+6. [BE-063](../tickets/backend/BE-063-switch-routers-to-require-principal.md): Switch routers, refuse to start without Clerk settings. Depends on: BE-061, BE-062
+7. [BE-064](../tickets/backend/BE-064-me-endpoint-require-user.md): `GET /me` and `require_user`. Depends on: BE-063
 
 **Frontend**
 
-1. Install the Clerk React SDK; `ClerkProvider`; loading state.
-2. Sign-in screen, styled.
-3. Bearer token in the shared request helper (builds on FE-002).
-4. Account control and sign-out.
-5. `401` and `403` handling.
-6. Remove the API key from the dev proxy.
+1. [FE-009](../tickets/frontend/FE-009-install-clerk-provider.md): Install the Clerk SDK, `ClerkProvider`. Depends on: none
+2. [FE-010](../tickets/frontend/FE-010-auth-gate.md): `AuthGate` and its four views. Depends on: FE-009
+3. [FE-011](../tickets/frontend/FE-011-sign-in-screen.md): Styled sign-in screen. Depends on: FE-010
+4. [FE-012](../tickets/frontend/FE-012-bearer-token-in-request.md): Bearer token in the request helper. Depends on: FE-002
+5. [FE-013](../tickets/frontend/FE-013-wire-session-token-to-api.md): Send Clerk's token with every API call. Depends on: FE-010, FE-012, BE-063
+6. [FE-014](../tickets/frontend/FE-014-account-control-sign-out.md): Account control and sign-out. Depends on: FE-010
+7. [FE-015](../tickets/frontend/FE-015-handle-401-session-ended.md): `401` ends the session calmly. Depends on: FE-013
+8. [FE-016](../tickets/frontend/FE-016-handle-403-not-allowed-screen.md): `403` not-allowed screen. Depends on: FE-015
+9. [FE-017](../tickets/frontend/FE-017-remove-api-key-from-dev-proxy.md): Remove the API key from the Vite dev proxy. Depends on: FE-013
 
-**Later**
+**Later (not ticketed)**
 
-- Step-up re-auth (5.6).
-- Unblock BE-046 (Telegram pairing).
+- Step-up re-auth (5.6), with EPIC-006.
+- Calling the API from a production build: needs the hosting decision.
+- [BE-046](../tickets/backend/BE-046-start-code-pairing.md) (Telegram pairing) now depends on BE-064.
 
 ## 10. Open questions (answer in place)
 
 1. Sign-in methods: Google, email code, or both?
-   - Answer:
+   - Answer: Google only. (answered)
 2. Pay for Clerk Pro now (passkeys, Clerk-side allowlist), or stay on the free plan?
-   - Answer:
+   - Answer: Stay on the free plan. (assumed)
 3. Step-up re-auth: part of this epic, or deferred until EPIC-006 needs it?
-   - Answer:
+   - Answer: Deferred to EPIC-006. (answered)
 4. How long may a session last before I must sign in again?
-   - Answer:
+   - Answer: Clerk's default session length. (assumed)
 5. Does the second person in EPIC-001 ever get an account, or only signing links?
-   - Answer:
+   - Answer: Signing links only, no account. (assumed)
 6. Token verification package: `pyjwt` with Clerk's public key, or Clerk's `clerk-backend-api`? (Check both on PyPI when unfolding.)
-   - Answer:
+   - Answer: `pyjwt[crypto]`. (answered)
 7. Keep `/health` and `/ping` public, as today?
-   - Answer:
+   - Answer: Yes, `/health` and `/ping` stay public. (answered)

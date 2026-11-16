@@ -19,7 +19,7 @@ Epics are feature-level requirements, polished by the human before they become w
 |---|---|---|
 | [EPIC-007: Email integration](EPIC-007-email-integration.md) | draft | Outbound transactional email (domain auth, templates, queue, bounces, unsubscribe), inbound forward-to-app routing, Mailpit for dev |
 | [EPIC-008: Telegram integration](EPIC-008-telegram-integration.md) | in-tickets | One private bot: verified webhook, allowlist, idempotency, router to features, central outbound service with quiet hours/caps, the n8n AI contract, dev/prod bots |
-| [EPIC-009: User login with Clerk](EPIC-009-user-login-clerk.md) | draft | Sign-in for the owner with Clerk: sign-in screen in the web app, verified session tokens in the API, API keys kept for machines, owner-only allowlist |
+| [EPIC-009: User login with Clerk](EPIC-009-user-login-clerk.md) | in-tickets | Sign-in for the owner with Clerk: sign-in screen in the web app, verified session tokens in the API, API keys kept for machines, owner-only allowlist |
 
 ## Lifecycle
 
