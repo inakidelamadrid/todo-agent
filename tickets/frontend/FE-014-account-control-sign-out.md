@@ -1,9 +1,9 @@
 # FE-014: Account control with sign-out in the app shell
 
-- **Status:** todo
+- **Status:** review
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.1 Sign-in and sign-out (signed-in state)
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)
 - **Depends on:** FE-010
 - **Can run in parallel with:** FE-012, FE-013
 - **Review size:** ~80 lines, 4 files plus tests, ~12 min
@@ -57,13 +57,13 @@ None new. Standard library and what is already installed.
 
 ## Acceptance criteria
 
-- [ ] The shell shows the owner's name or email and a **Sign out** action when signed in
+- [x] The shell shows the owner's name or email and a **Sign out** action when signed in
 - [ ] Signing out shows the sign-in screen, and the bills data is not visible
-- [ ] The control has default, hover, focus, signing-out and error states
-- [ ] It works at phone width (icon only) and with the keyboard
-- [ ] Tests and the build pass
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] The control has default, hover, focus, signing-out and error states
+- [x] It works at phone width (icon only) and with the keyboard
+- [x] Tests and the build pass
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -87,3 +87,10 @@ Things that should *not* be in the diff: A profile page, account settings, `User
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-014`.
+- Added pure `accountLabel` (`web/src/features/auth/accountLabel.ts`) with tests in `accountLabel.test.ts` covering full name preference, email fallback, `'Account'` fallback for null/undefined/blank, and whitespace trimming.
+- Added `AccountControl` (`web/src/features/auth/AccountControl.tsx`) styled for the midnight rail (in both light and dark themes) with truncated label + `title` tooltip, `LogOut` icon, hover/focus-visible/active states, disabled `Signing out…` state, and `sonner` error toast (`"Couldn't sign out. Try again."`).
+- Added optional `account` slot to `AppShell.tsx` (at the bottom of the vertical desktop rail and at the right end of the mobile top bar as an icon-only button) and wired `<AccountControl />` in `App.tsx`.
+- `make web-test` → 66 passed (4 new); `make web-build` passes.
+- Interactive sign-out check in a signed-in browser session left unchecked for human verification.

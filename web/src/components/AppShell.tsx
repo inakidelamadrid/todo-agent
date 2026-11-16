@@ -10,7 +10,15 @@ export const BrandMark = () => (
   </svg>
 )
 
-export const AppShell = ({ children, status }: { readonly children: ReactNode; readonly status?: ReactNode }) => (
+export const AppShell = ({
+  children,
+  status,
+  account,
+}: {
+  readonly children: ReactNode
+  readonly status?: ReactNode
+  readonly account?: ReactNode
+}) => (
   <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr]">
     <aside className="flex items-center gap-6 bg-rail px-4 py-3 text-rail-foreground md:sticky md:top-0 md:h-dvh md:flex-col md:items-stretch md:gap-8 md:px-5 md:py-7">
       <div className="flex items-center gap-2.5">
@@ -34,6 +42,7 @@ export const AppShell = ({ children, status }: { readonly children: ReactNode; r
           Saved to your bills API.
         </p>
       </div>
+      {account}
     </aside>
     <main id="bills" className="min-w-0">
       {children}
