@@ -1,9 +1,9 @@
 # FE-011: The styled sign-in screen (Google only, no sign-up link)
 
-- **Status:** todo
+- **Status:** done (committed on `idelamadrid/FE-011`, stacked on FE-010; Google sign-in end to end awaits the owner)
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.1 Sign-in and sign-out, §3 Non-goals (no sign-up)
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
 - **Depends on:** FE-010
 - **Can run in parallel with:** BE-058 to BE-064
 - **Review size:** ~90 lines, 3 files plus tests, ~15 min
@@ -58,13 +58,13 @@ None new. Standard library and what is already installed.
 
 ## Acceptance criteria
 
-- [ ] The signed-out screen uses the design tokens and `label-caps`, with Clerk's default look not visible
+- [x] The signed-out screen uses the design tokens and `label-caps`, with Clerk's default look not visible
 - [ ] Google sign-in works end to end for the owner in the development instance
-- [ ] No 'Sign up' link is visible
-- [ ] Light and dark both look right; phone width has no horizontal scroll; keyboard focus is visible
-- [ ] Tests pass and the build passes
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] No 'Sign up' link is visible
+- [x] Light and dark both look right; phone width has no horizontal scroll; keyboard focus is visible
+- [x] Tests pass and the build passes
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -95,3 +95,13 @@ Things that should *not* be in the diff: The account control, sign-out, token ha
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-011`, stacked on `idelamadrid/FE-010` (started before FE-010 merged, at the user's request).
+- The assumption holds: `appearance.variables` accepts `var(--…)` and `elements.footer: { display: "none" }` hides the sign-up link. Clerk's docs advise plain colour values for older browsers; token references are kept as the ticket asks.
+- `appearance` is typed `any` in `@clerk/react` 6.18.8 (the types live in `@clerk/ui`, not installed), so element names were confirmed in the DOM, not by the compiler.
+- Clerk's own header is hidden too, since the screen carries the headline.
+- Clerk draws the Google button's border as a box-shadow ring and forces `border-width: 0`, so the outline is a box-shadow applied only when not focus-visible; Clerk's focus ring is untouched.
+- `fontFamily` is left to inherit: `--font-sans` is not emitted as a runtime variable; `--font-display` is.
+- `make web-test` → 52 passed (2 new); `make web-build` passes.
+- Checked in Chrome: dark and light (`data-theme`), keyboard focus ring on the Google button, no "Sign up" text in the page, no horizontal scroll at 375 px (in an iframe).
+- Not checked: Google sign-in end to end (needs the owner's account), Clerk's in-place sign-in errors, reduced motion.
