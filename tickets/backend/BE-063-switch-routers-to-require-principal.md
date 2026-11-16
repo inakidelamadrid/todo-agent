@@ -1,9 +1,9 @@
 # BE-063: Switch the routers to `require_principal`; refuse to start without Clerk settings
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-063-require-principal-routers`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.3, §5.4 Owner allowlist, §7 Security
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-061, BE-062
 - **Can run in parallel with:** FE-009 to FE-011
 - **Public endpoint?** no
@@ -66,13 +66,13 @@ None new. Standard library and what is already installed.
 
 ## Acceptance criteria
 
-- [ ] `bills_router` and `payments_router` use `require_principal`; `/health` and `/ping` stay public
-- [ ] The app does not start unless all three Clerk values are set, and the error never shows a value
-- [ ] A valid `X-API-Key` still gets through every protected route
-- [ ] `/openapi.json` lists the bearer and API-key schemes
-- [ ] The existing bills tests pass without edits to their assertions
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `bills_router` and `payments_router` use `require_principal`; `/health` and `/ping` stay public
+- [x] The app does not start unless all three Clerk values are set, and the error never shows a value
+- [x] A valid `X-API-Key` still gets through every protected route
+- [x] `/openapi.json` lists the bearer and API-key schemes
+- [x] The existing bills tests pass without edits to their assertions
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -98,3 +98,13 @@ Things that should *not* be in the diff: New routes, changes to `bills/`, the we
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-063-require-principal-routers`. `main.py` swaps both business routers to `require_principal`, refuses to start without all three Clerk values (message names the variables, never a value), and adds `BearerAuth` to the OpenAPI schemes next to `APIKeyHeader`. Public routes untouched; `require_api_key` remains (unused) for later removal.
+- **Deviation from the ticket (better):** instead of a fake-decoder override for signed-in tests, the suite signs REAL RS256 tokens and runs them through the real BE-061 decoder end to end. `tests/keys.py` holds a **static test-only key pair** as constants — documented as intentionally-committed non-credentials.
+  - Root cause discovered while debugging: a *generated* key pair breaks under `pytest -n auto` because the xdist controller imports conftest (generating pair A, inherited by worker env at spawn) while each worker's test module generates pair B → signature verification failed only in parallel runs. The static pair makes every process agree. Logged for the reviewer because it's the kind of failure that looks like flakiness.
+- `test_auth.py` rewritten for the dual scheme (new detail text + both challenges); old behaviors kept (wrong key, echo-free responses, API_KEYS validators).
+- `test_settings_clerk.py` gained an autouse env-isolation fixture because conftest now sets CLERK_* process env defaults.
+- Bills/payments integration tests pass unchanged with API keys (Machine path), per the acceptance criterion.
+- `make api-test` → 180 passed, **5 consecutive parallel runs** (the key-pair bug was the flaky one).
+- ⚠️ For the human's hand check: `python-dotenv` warns "could not parse statement starting at line 21" while reading `api/.env` — the pasted `CLERK_JWT_PUBLIC_KEY` likely has real newlines.
+- **User-requested tooling added (extra scope, mid-ticket):** `api/scripts/clerk_jwks.py` with `make clerk-key-check` (validates dotenv-parseability AND RSA key structure, message only) and `make clerk-key-fix` (prints a paste-ready one-line assignment; **never edits `.env`**). The real key was confirmed broken exactly as predicted (real-newline paste) and `clerk-key-fix` already produced the corrected line. Runbook step 4 references both. 8 new tests; 188 passed total.

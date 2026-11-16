@@ -8,6 +8,19 @@ import pytest
 
 from app.settings import Settings, clerk_enabled, normalize_pem, parse_csv
 
+CLERK_VARS = (
+    "CLERK_JWT_PUBLIC_KEY",
+    "CLERK_AUTHORIZED_PARTIES",
+    "CLERK_ALLOWED_USER_IDS",
+)
+
+
+@pytest.fixture(autouse=True)
+def _no_clerk_env(monkeypatch: pytest.MonkeyPatch):
+    """Isolate from conftest's CLERK_* process-env defaults (BE-063)."""
+    for var in CLERK_VARS:
+        monkeypatch.delenv(var, raising=False)
+
 
 def _settings(**overrides):
     base = {"api_keys": "test"}

@@ -10,6 +10,16 @@ from collections.abc import Callable
 
 os.environ.setdefault("API_KEYS", "test-key-1,test-key-2")
 
+# Test-only static key pair (tests/keys.py), set BEFORE importing the app:
+# the app refuses to start without Clerk settings (BE-063). Static on
+# purpose — see the module docstring for the xdist env-inheritance trap.
+# Never a real Clerk key.
+from tests.keys import OWNER_USER_ID, TEST_ORIGIN, TEST_PUBLIC_PEM, sign_token
+
+os.environ.setdefault("CLERK_JWT_PUBLIC_KEY", TEST_PUBLIC_PEM)
+os.environ.setdefault("CLERK_AUTHORIZED_PARTIES", TEST_ORIGIN)
+os.environ.setdefault("CLERK_ALLOWED_USER_IDS", OWNER_USER_ID)
+
 import asyncio
 import re
 from pathlib import Path
@@ -22,7 +32,7 @@ from fastapi import APIRouter, Depends, FastAPI
 from fastapi.testclient import TestClient
 
 from app.main import create_app
-from app.security import require_api_key
+from app.security import require_principal
 from app.settings import Settings, get_settings
 
 KEY_ONE = "test-key-1"
@@ -31,10 +41,12 @@ PROTECTED_PROBE_PATH = "/__test-protected"
 
 _API_DIR = Path(__file__).resolve().parent.parent
 
+__all__ = ["OWNER_USER_ID", "TEST_ORIGIN", "sign_token"]  # re-exported helpers
+
 
 def _protected_probe_router() -> APIRouter:
     """A protected route registered only in tests — never shipped."""
-    router = APIRouter(dependencies=[Depends(require_api_key)])
+    router = APIRouter(dependencies=[Depends(require_principal)])
 
     @router.get(PROTECTED_PROBE_PATH)
     def _probe() -> dict[str, bool]:
