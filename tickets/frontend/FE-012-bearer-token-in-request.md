@@ -1,9 +1,9 @@
 # FE-012: The request helper adds `Authorization: Bearer` from an injected token getter
 
-- **Status:** todo
+- **Status:** done (committed on `idelamadrid/FE-012`; not pushed)
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §5.2 Session handling
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
 - **Depends on:** FE-002
 - **Can run in parallel with:** BE-058 to BE-064, FE-009 to FE-011
 - **Review size:** ~50 lines, 2 files plus tests, ~10 min
@@ -56,13 +56,13 @@ No other file changes. Existing callers keep working because the parameter is op
 
 ## Acceptance criteria
 
-- [ ] `createRequest` accepts an optional `getToken` and sends the bearer header when it yields a token
-- [ ] A missing, null or failing getter sends no header and does not throw
-- [ ] A token is requested per call, never stored in the module
-- [ ] The token never appears in an error message
-- [ ] Existing tests pass untouched
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `createRequest` accepts an optional `getToken` and sends the bearer header when it yields a token
+- [x] A missing, null or failing getter sends no header and does not throw
+- [x] A token is requested per call, never stored in the module
+- [x] The token never appears in an error message
+- [x] Existing tests pass untouched
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -86,3 +86,10 @@ Things that should *not* be in the diff: Anything importing `@clerk/react`, wiri
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-012`. Tests written first: the two header tests failed, then passed once `getToken` was added.
+- `getToken().catch(() => null)` covers a rejecting getter; the token is a local per call, with no module state.
+- The `headers` expression was rewritten as one object with conditional spreads; without a getter it produces the same headers as before (covered by a test).
+- `GetToken` is exported so FE-013 can type Clerk's getter against it.
+- `make web-test` → 58 passed (6 new); `make web-build` passes. `Authorization` appears only in `api.ts` and its test.
+- No UI change, so nothing to check in the browser.

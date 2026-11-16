@@ -40,12 +40,22 @@ const messageFor = (status: number, detail: unknown): string => {
 
 export type Fetch = typeof fetch
 
-/** Build `request` around an injectable fetch (tests pass a mock). */
-export const createRequest = (fetchImpl: Fetch, base: string) => {
+export type GetToken = () => Promise<string | null>
+
+/**
+ * Build `request` around an injectable fetch (tests pass a mock) and an optional token getter.
+ * The token is read per call and never stored; a missing, null or failing getter sends no header.
+ */
+export const createRequest = (fetchImpl: Fetch, base: string, getToken?: GetToken) => {
   const request = async <T>(method: string, path: string, body?: unknown): Promise<T> => {
+    const token = getToken ? await getToken().catch(() => null) : null
     const response = await fetchImpl(`${base}${path}`, {
       method,
-      headers: body === undefined ? { Accept: 'application/json' } : { Accept: 'application/json', 'Content-Type': 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
     }).catch(() => {
       throw new ApiError(0, 'Can’t reach the bills API')
