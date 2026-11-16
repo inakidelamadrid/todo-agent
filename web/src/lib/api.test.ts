@@ -47,3 +47,59 @@ describe('request', () => {
     expect(toFieldErrors('Bill is not due')).toEqual({})
   })
 })
+
+describe('request with a token getter', () => {
+  const TOKEN = 'session-token-abc'
+
+  const setupAuth = (getToken: (() => Promise<string | null>) | undefined, status = 200) => {
+    const fetchMock = vi.fn(async () => json(status, status === 200 ? [] : { detail: 'Invalid or missing credentials' }))
+    return { request: createRequest(fetchMock as unknown as typeof fetch, '/api', getToken), fetchMock }
+  }
+
+  const headersOf = (fetchMock: ReturnType<typeof vi.fn>, index = 0) =>
+    (fetchMock.mock.calls[index] as [string, RequestInit])[1].headers as Record<string, string>
+
+  it('adds a bearer header when a token is returned', async () => {
+    const { request, fetchMock } = setupAuth(async () => TOKEN)
+    await request('GET', '/bills')
+    expect(headersOf(fetchMock)).toEqual({ Accept: 'application/json', Authorization: `Bearer ${TOKEN}` })
+  })
+
+  it('sends no header when the token is null', async () => {
+    const { request, fetchMock } = setupAuth(async () => null)
+    await request('GET', '/bills')
+    expect(headersOf(fetchMock)).not.toHaveProperty('Authorization')
+  })
+
+  it('sends no header, and still sends the request, when the getter rejects', async () => {
+    const { request, fetchMock } = setupAuth(async () => {
+      throw new Error('clerk is down')
+    })
+    await expect(request('GET', '/bills')).resolves.toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(headersOf(fetchMock)).not.toHaveProperty('Authorization')
+  })
+
+  it('asks for a fresh token on every request', async () => {
+    const getToken = vi.fn().mockResolvedValueOnce('first').mockResolvedValueOnce('second')
+    const { request, fetchMock } = setupAuth(getToken)
+    await request('GET', '/bills')
+    await request('GET', '/bills')
+    expect(getToken).toHaveBeenCalledTimes(2)
+    expect(headersOf(fetchMock, 0).Authorization).toBe('Bearer first')
+    expect(headersOf(fetchMock, 1).Authorization).toBe('Bearer second')
+  })
+
+  it('never puts the token in a thrown ApiError', async () => {
+    const { request } = setupAuth(async () => TOKEN, 401)
+    const error = (await request('GET', '/bills').catch((e: unknown) => e)) as ApiError
+    expect(error.status).toBe(401)
+    expect(JSON.stringify({ ...error, message: error.message, stack: error.stack })).not.toContain(TOKEN)
+  })
+
+  it('leaves existing calls unchanged without a getter', async () => {
+    const { request, fetchMock } = setupAuth(undefined)
+    await request('POST', '/bills', { name: 'CFE' })
+    expect(headersOf(fetchMock)).toEqual({ Accept: 'application/json', 'Content-Type': 'application/json' })
+  })
+})
