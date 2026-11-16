@@ -48,8 +48,8 @@ const copyFor = (error: LoadError) =>
   error.status === 401
     ? {
         icon: KeyRound,
-        title: 'The API rejected the key',
-        body: 'Set API_KEY in web/.env.local to one of the keys in api/.env (API_KEYS), then restart make web-dev.',
+        title: 'Your session ended',
+        body: 'Sign in again to load your bills.',
       }
     : error.status === 0 || error.status >= 500
       ? {
