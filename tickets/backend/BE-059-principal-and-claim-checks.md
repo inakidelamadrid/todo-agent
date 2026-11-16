@@ -1,9 +1,9 @@
 # BE-059: `Principal` types and the pure token-claim checks
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-059-principal-and-claim-checks`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.3 Principal and dependency, §5.4 Owner allowlist
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** none
 - **Can run in parallel with:** BE-058, FE-009
 - **Public endpoint?** no
@@ -103,13 +103,13 @@ Both tuples empty means every token is rejected (`wrong_party`, then `not_owner`
 
 ## Acceptance criteria
 
-- [ ] `User`, `Machine`, `Principal`, `Rejected`, `ClerkRules` and `check_claims` exist as specified
-- [ ] `check_claims` is pure: it takes `now` and `rules` as arguments, and touches no clock, header or environment
-- [ ] Every rejection reason has a test, and the boundary of `exp` and `nbf` is tested on both sides
-- [ ] Empty rules reject everyone
-- [ ] No new dependency
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `User`, `Machine`, `Principal`, `Rejected`, `ClerkRules` and `check_claims` exist as specified
+- [x] `check_claims` is pure: it takes `now` and `rules` as arguments, and touches no clock, header or environment
+- [x] Every rejection reason has a test, and the boundary of `exp` and `nbf` is tested on both sides
+- [x] Empty rules reject everyone
+- [x] No new dependency
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -134,3 +134,9 @@ Things that should *not* be in the diff: Any `jwt` import, `time.time()`, `os.en
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-059-principal-and-claim-checks`, built exactly to the ticket's order of checks (`malformed → expired → not_yet_valid → wrong_party → not_owner`, first failure wins).
+- `_is_int` helper rejects bools explicitly (`exp: true` is JSON-valid but not a timestamp). `nbf` absent is fine; bad-typed `nbf` is malformed. Blank/whitespace `sub` and `azp` are malformed too.
+- Tests hit every boundary on both sides of `exp`/`nbf` leeway (`NOW ± LEEWAY_SECONDS`), check order precedence (`malformed` and `expired` beat later reasons), empty rules fail closed, and frozenness via `FrozenInstanceError`.
+- Imports verified: only `collections.abc`, `dataclasses`, `typing`. No jwt, no clock, no FastAPI.
+- `make api-test` → 143 passed (28 new).
