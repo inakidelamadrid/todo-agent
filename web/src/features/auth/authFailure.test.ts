@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import { describeAuthFailure, handleAuthFailure } from './authFailure'
+import { useAuthStore } from './authStore'
 
 vi.mock('sonner', () => ({
   toast: vi.fn(),
@@ -9,6 +10,7 @@ vi.mock('sonner', () => ({
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.clearAllMocks()
+  useAuthStore.getState().reset()
 })
 
 describe('describeAuthFailure', () => {
@@ -37,15 +39,27 @@ describe('handleAuthFailure', () => {
 
     expect(signOut).toHaveBeenCalledTimes(1)
     expect(toast).toHaveBeenCalledWith('Your session ended. Please sign in again.', { id: 'session-ended' })
+    expect(useAuthStore.getState().forbidden).toBe(false)
   })
 
-  it('does nothing yet on 403 or other statuses', () => {
+  it('sets forbidden on 403 without signing out or showing a toast', () => {
     const signOut = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('Clerk', { signOut })
 
     handleAuthFailure(403)
+
+    expect(useAuthStore.getState().forbidden).toBe(true)
+    expect(signOut).not.toHaveBeenCalled()
+    expect(toast).not.toHaveBeenCalled()
+  })
+
+  it('does nothing on other statuses', () => {
+    const signOut = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('Clerk', { signOut })
+
     handleAuthFailure(500)
 
+    expect(useAuthStore.getState().forbidden).toBe(false)
     expect(signOut).not.toHaveBeenCalled()
     expect(toast).not.toHaveBeenCalled()
   })
