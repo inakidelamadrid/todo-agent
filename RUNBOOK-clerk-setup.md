@@ -37,13 +37,22 @@ Do this with the **development instance** only; production is a later decision.
    the one we need is **"JWKS Public Key"** — copy the full PEM (it starts
    with `-----BEGIN PUBLIC KEY-----`).
 2. Paste it in `api/.env` on **one line**, with newlines written as `\n`
-   (the backend expands them; empty placeholders are already in the file):
+   (the backend expands them), or quoted. Empty placeholders are already in
+   the file:
 
    ```
    CLERK_JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----\nMIIB...\n-----END PUBLIC KEY-----
    ```
 
    The public key is public by design, but still keep it out of git.
+
+3. Validate, and let the checker tell you if the paste form is wrong:
+
+   ```bash
+   make clerk-key-check   # validates parseability + RSA key structure
+   make clerk-key-fix     # if the paste used real newlines: prints a
+                          # paste-ready one-line assignment (never edits .env)
+   ```
 
 **Values on that page we do *not* need** (verified against the manual JWT
 verification docs): `Frontend API URL`, `Backend API URL`, `JWKS URL` (we

@@ -4,7 +4,8 @@ Settings are resolved here so that misconfiguration (missing/empty
 ``API_KEYS``) fails at startup instead of serving unauthenticated traffic.
 
 Protected by default: every non-public router must be mounted with
-``dependencies=[Depends(require_api_key)]``.
+``dependencies=[Depends(require_principal)]`` (a person with a Clerk
+session token or a machine with an API key).
 """
 
 from collections.abc import AsyncIterator, Callable
@@ -16,8 +17,8 @@ from fastapi import Depends, FastAPI
 from app.bills.router import bills_router, payments_router
 from app.db import build_engine, dispose_engine
 from app.routes import public
-from app.security import API_KEY_HEADER_NAME, require_api_key
-from app.settings import get_settings
+from app.security import API_KEY_HEADER_NAME, require_principal
+from app.settings import clerk_enabled, get_settings
 
 
 @asynccontextmanager
@@ -48,6 +49,10 @@ def _openapi_with_api_key_scheme(app: FastAPI) -> Callable[[], dict[str, Any]]:
             "APIKeyHeader",
             {"type": "apiKey", "in": "header", "name": API_KEY_HEADER_NAME},
         )
+        schemes.setdefault(
+            "BearerAuth",
+            {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+        )
         return schema
 
     return _custom_openapi
@@ -55,13 +60,20 @@ def _openapi_with_api_key_scheme(app: FastAPI) -> Callable[[], dict[str, Any]]:
 
 def create_app() -> FastAPI:
     settings = get_settings()  # raises at startup when API_KEYS is missing/empty
+    if not clerk_enabled(settings):
+        # Names the variables, never a value. api/.env holds the real ones.
+        raise RuntimeError(
+            "CLERK_JWT_PUBLIC_KEY, CLERK_AUTHORIZED_PARTIES and "
+            "CLERK_ALLOWED_USER_IDS must all be set"
+        )
 
     app = FastAPI(title="todo-agent API", version=settings.app_version, lifespan=_lifespan)
     app.openapi = _openapi_with_api_key_scheme(app)  # type: ignore[method-assign]
     app.include_router(public.router)
-    # Protected by default: every business router carries the API key dependency.
-    app.include_router(bills_router, dependencies=[Depends(require_api_key)])
-    app.include_router(payments_router, dependencies=[Depends(require_api_key)])
+    # Protected by default: every business router accepts a person (Clerk
+    # session) or a machine (API key) through one shared dependency.
+    app.include_router(bills_router, dependencies=[Depends(require_principal)])
+    app.include_router(payments_router, dependencies=[Depends(require_principal)])
     return app
 
 
