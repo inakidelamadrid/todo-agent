@@ -1,9 +1,9 @@
 # FE-013: Send Clerk's session token with every API call
 
-- **Status:** todo
+- **Status:** review
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §5.2
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)
 - **Depends on:** FE-010, FE-012, BE-063
 - **Can run in parallel with:** FE-014
 - **Review size:** ~35 lines, 3 files plus tests, ~10 min
@@ -55,13 +55,13 @@ The dev proxy still adds `X-API-Key`. That is fine: the bearer token wins in BE-
 
 ## Acceptance criteria
 
-- [ ] Every `/api/*` call from the app carries `Authorization: Bearer …`
+- [x] Every `/api/*` call from the app carries `Authorization: Bearer …`
 - [ ] The bills screen works signed in
 - [ ] `GET /api/me` with the session token returns `{"userId": …, "kind": "user"}` (needs BE-064; until then `/api/bills` is the check)
 - [ ] A real Clerk token passes the API's checks, including `azp` (confirms the BE-061 assumption)
-- [ ] The token is not printed anywhere
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] The token is not printed anywhere
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -90,3 +90,9 @@ Things that should *not* be in the diff: Removing the proxy key (FE-017), handli
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-013`.
+- Added `getSessionToken` in `web/src/lib/sessionToken.ts` reading `(globalThis as ClerkGlobal).Clerk?.session?.getToken()` without caching or logging (`globalThis.Clerk` is what `@clerk/react` 6.18.8 sets in the browser, equivalent to `window.Clerk`, and works in the Node Vitest environment via `vi.stubGlobal`).
+- Passed `getSessionToken` as the third argument to `createRequest` in `web/src/features/bills/api/client.ts`.
+- `make web-test` → 62 passed (4 new in `sessionToken.test.ts`); `make web-build` passes.
+- Manual signed-in browser checks (`GET /api/bills` and `GET /api/me` with a real Google session token) left unchecked for human verification.

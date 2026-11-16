@@ -1,4 +1,5 @@
 import { createRequest, type Fetch } from '@/lib/api'
+import { getSessionToken } from '@/lib/sessionToken'
 import type { Bill, MonthKey, Payment } from '../model/types'
 
 export { ApiError, isApiError, toFieldErrors, type FieldErrors } from '@/lib/api'
@@ -29,7 +30,7 @@ export const toBillInput = ({ id: _id, ...input }: Bill): BillInput => input
 
 /** Build the client around an injectable fetch (tests pass a mock). */
 export const createBillsApi = (fetchImpl: Fetch = (...args) => fetch(...args), base = '/api') => {
-  const request = createRequest(fetchImpl, base)
+  const request = createRequest(fetchImpl, base, getSessionToken)
 
   return {
     listBills: async (): Promise<readonly Bill[]> => (await request<readonly BillDto[]>('GET', '/bills')).map(toBill),
