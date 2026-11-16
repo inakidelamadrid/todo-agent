@@ -1,9 +1,9 @@
 # FE-017: Remove the API key from the Vite dev proxy
 
-- **Status:** todo
+- **Status:** review (committed on `idelamadrid/FE-017`; not pushed)
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §7 Security, §8 acceptance criteria
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
 - **Depends on:** FE-013
 - **Can run in parallel with:** none
 - **Review size:** ~30 lines, 4 files plus tests, ~8 min
@@ -57,12 +57,12 @@ None new. Standard library and what is already installed.
 
 ## Acceptance criteria
 
-- [ ] `vite.config.ts` has no reference to `API_KEY` and adds no `X-API-Key`
+- [x] `vite.config.ts` has no reference to `API_KEY` and adds no `X-API-Key`
 - [ ] The bills screen works signed in without `API_KEY` set
-- [ ] A signed-out browser calling `/api/bills` gets `401`
+- [x] A signed-out browser calling `/api/bills` gets `401`
 - [ ] `grep -ri "x-api-key\|API_KEY" web/dist` finds nothing after a build
-- [ ] `web/.env.example` and the docs no longer mention `API_KEY` for the web app
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] `web/.env.example` and the docs no longer mention `API_KEY` for the web app
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
 - [ ] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
@@ -88,3 +88,12 @@ Things that should *not* be in the diff: CORS, production hosting, deleting `API
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-017`. Test written first (failed on the missing export), then `apiProxy` reduced to target, `changeOrigin` and the rewrite.
+- Two files beyond the ticket's list: `LoadStates.tsx` and `RailStatus.tsx` told the user to set `API_KEY` on a 401. That copy is now "Your session ended / Sign in again", which also keeps the string out of the bundle.
+- `Makefile`: the web section comment and the `web-dev` hint no longer mention `API_KEY`.
+- **Bundle grep criterion not met as written:** `grep -ri "x-api-key\|API_KEY" web/dist` still matches once, on Clerk's own constant `API_KEYS_KEY` inside `@clerk/react`. None of our code or the key is in the bundle. Suggest tightening the grep to `x-api-key\|\bAPI_KEY\b`.
+- Left alone, for the owner to decide: `messageFor` in `web/src/lib/api.ts` still says "The API rejected the key" for 401, and a comment in `useBillsStore.ts` says "401 = bad key". `CLAUDE.md` still describes the API as "protected by `X-API-Key`" (owner-edited; reported, not changed).
+- `make web-test` → 76 passed (3 new); `make web-build` passes.
+- Checked with the dev server and the API running, `API_KEY` still present in `web/.env`: `GET /api/bills` through the proxy with no credentials → 401, so the proxy no longer adds the key.
+- Not checked: the bills screen signed in (needs the owner's Google account). Diff is about 45 lines against the ticket's 30, because of the two copy fixes and the Makefile.

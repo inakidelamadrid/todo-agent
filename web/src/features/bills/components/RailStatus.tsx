@@ -15,7 +15,7 @@ export const RailStatus = () => {
 
   const [dot, title, detail] =
     billsStatus === 'error' || currentMonthStatus === 'error'
-      ? ['var(--overdue)', loadError?.status === 401 ? 'Key rejected' : 'API offline', loadError?.status === 401 ? 'Check API_KEY in web/.env.local' : 'Run make api-dev, then retry']
+      ? ['var(--overdue)', loadError?.status === 401 ? 'Session ended' : 'API offline', loadError?.status === 401 ? 'Sign in again' : 'Run make api-dev, then retry']
       : billsStatus !== 'ready' || currentMonthStatus !== 'ready'
         ? ['var(--muted-foreground)', 'Connecting', 'Loading your bills…']
         : overdue.length > 0
