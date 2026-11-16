@@ -42,11 +42,18 @@ export type Fetch = typeof fetch
 
 export type GetToken = () => Promise<string | null>
 
+export type OnAuthFailure = (status: 401 | 403) => void
+
 /**
  * Build `request` around an injectable fetch (tests pass a mock) and an optional token getter.
  * The token is read per call and never stored; a missing, null or failing getter sends no header.
  */
-export const createRequest = (fetchImpl: Fetch, base: string, getToken?: GetToken) => {
+export const createRequest = (
+  fetchImpl: Fetch,
+  base: string,
+  getToken?: GetToken,
+  onAuthFailure?: OnAuthFailure,
+) => {
   const request = async <T>(method: string, path: string, body?: unknown): Promise<T> => {
     const token = getToken ? await getToken().catch(() => null) : null
     const response = await fetchImpl(`${base}${path}`, {
@@ -63,6 +70,7 @@ export const createRequest = (fetchImpl: Fetch, base: string, getToken?: GetToke
     if (response.status === 204) return undefined as T
     const payload: unknown = await response.json().catch(() => null)
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) onAuthFailure?.(response.status)
       const detail = (payload as { detail?: unknown } | null)?.detail
       throw new ApiError(response.status, messageFor(response.status, detail), response.status === 422 ? toFieldErrors(detail) : {})
     }
