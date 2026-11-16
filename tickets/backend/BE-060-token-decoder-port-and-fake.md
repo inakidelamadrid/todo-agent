@@ -1,9 +1,9 @@
 # BE-060: Token decoder port, `verify_session` and a fake decoder
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-060-token-decoder-port-and-fake`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (token verification is a port), §5.3
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-059
 - **Can run in parallel with:** FE-009 to FE-011
 - **Public endpoint?** no
@@ -84,12 +84,12 @@ A signature failure, a garbled token and an unknown algorithm all arrive here as
 
 ## Acceptance criteria
 
-- [ ] `DecodeToken`, `verify_session` and `get_token_decoder` exist as specified
-- [ ] The default decoder rejects every token (fail closed)
-- [ ] `tests/fakes.py` offers `fake_decoder` and `make_claims`, and no test needs a real key
-- [ ] No new dependency
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `DecodeToken`, `verify_session` and `get_token_decoder` exist as specified
+- [x] The default decoder rejects every token (fail closed)
+- [x] `tests/fakes.py` offers `fake_decoder` and `make_claims`, and no test needs a real key
+- [x] No new dependency
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -114,3 +114,9 @@ Things that should *not* be in the diff: `jwt`, a key, the Clerk settings used f
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-060-token-decoder-port-and-fake`, rebased onto main after BE-059 (#12) merged.
+- `DecodeToken`, `reject_all` (fail-closed default), `verify_session` (pure composition: `None` → malformed, else `check_claims`), and `get_token_decoder` as a plain FastAPI dependency — overridable via `dependency_overrides` (tested).
+- `tests/fakes.py`: `fake_decoder(table)` + `make_claims(**overrides)`; unknown tokens decode to `None`. No real key anywhere.
+- Verified nothing imports `session_token` from `main.py` yet.
+- `make api-test` → 150 passed (7 new).
