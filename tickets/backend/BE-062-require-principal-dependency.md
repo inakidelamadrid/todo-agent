@@ -1,9 +1,9 @@
 # BE-062: `require_principal`: one dependency for people and machines
 
-- **Status:** todo
+- **Status:** done (implemented and verified on branch `idelamadrid/BE-062-require-principal`; not committed — awaiting user approval)
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design, §5.3 Principal and dependency, §7
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
 - **Depends on:** BE-058, BE-060
 - **Can run in parallel with:** FE-009 to FE-011
 - **Public endpoint?** no
@@ -87,13 +87,13 @@ def require_principal(...) -> Principal: ...   # FastAPI dependency
 
 ## Acceptance criteria
 
-- [ ] `require_principal` returns `User` for the owner's token and `Machine` for a valid key
-- [ ] A missing or wrong credential gives `401` with `WWW-Authenticate`, a non-owner token gives `403`, an expired or other-origin token gives `401`
-- [ ] `resolve_principal` is pure and unit-tested without FastAPI
-- [ ] `require_api_key` is unchanged and no router uses `require_principal` yet
-- [ ] Credentials never appear in a response
-- [ ] Tests pass (`make api-test`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] `require_principal` returns `User` for the owner's token and `Machine` for a valid key
+- [x] A missing or wrong credential gives `401` with `WWW-Authenticate`, a non-owner token gives `403`, an expired or other-origin token gives `401`
+- [x] `resolve_principal` is pure and unit-tested without FastAPI
+- [x] `require_api_key` is unchanged and no router uses `require_principal` yet
+- [x] Credentials never appear in a response
+- [x] Tests pass (`make api-test`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -119,3 +119,10 @@ Things that should *not* be in the diff: Changes to `main.py`, to existing route
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/BE-062-require-principal`. Pure `resolve_principal` with the ticket's three rules, wrapped by `require_principal`; `Denied(status, detail)` rejection value maps to HTTP in one place. `require_api_key` untouched; no router uses the new dependency yet.
+- `HTTPBearer(auto_error=False)` + existing `APIKeyHeader` as `Security(...)` params: both schemes will show in `/docs` once mounted (verified in the OpenAPI diff-free state for now — not mounted, per ticket).
+- `get_now()` dependency pins the clock in tests; decoder/settings/clock all overridden via `dependency_overrides` on a throwaway app.
+- 401s carry `WWW-Authenticate: Bearer, ApiKey`; 403 carries none. Bearer precedence: bad bearer + valid key → 401; valid bearer + wrong key → User; `Basic` scheme ignored → falls through to key.
+- Echo test checks body AND headers for token/key across all 401/403/200 shapes.
+- `make api-test` → 175 passed (12 new); existing `test_auth.py` untouched.
