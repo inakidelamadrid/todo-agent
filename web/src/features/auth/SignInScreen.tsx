@@ -14,6 +14,9 @@ export const SignInScreen = () => (
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Private to its owner. Sign in to continue.</p>
       </div>
       <SignIn routing="hash" appearance={clerkAppearance} />
+      <p className="text-center text-sm leading-relaxed text-muted-foreground">
+        Sign-up is by invitation only.
+      </p>
     </div>
   </main>
 )
