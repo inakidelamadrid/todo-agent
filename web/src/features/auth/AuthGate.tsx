@@ -1,8 +1,10 @@
 import { useAuth, useClerk } from '@clerk/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { BrandMark } from '@/components/AppShell'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from './authStore'
 import { resolveAuthView } from './authView'
+import { NotAllowedScreen } from './NotAllowedScreen'
 import { SignInScreen } from './SignInScreen'
 
 const Centered = ({ children }: { readonly children: ReactNode }) => (
@@ -14,9 +16,16 @@ const Centered = ({ children }: { readonly children: ReactNode }) => (
 export const AuthGate = ({ children }: { readonly children: ReactNode }) => {
   const { isLoaded, isSignedIn } = useAuth()
   const loadFailed = useClerk().status === 'error'
-  const view = resolveAuthView({ isLoaded, isSignedIn, loadFailed })
+  const forbidden = useAuthStore((s) => s.forbidden)
+  const reset = useAuthStore((s) => s.reset)
+  const view = resolveAuthView({ isLoaded, isSignedIn, loadFailed, forbidden })
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn && forbidden) reset()
+  }, [isLoaded, isSignedIn, forbidden, reset])
 
   if (view === 'signed-in') return children
+  if (view === 'forbidden') return <NotAllowedScreen />
   if (view === 'loading')
     return (
       <Centered>

@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { useAuthStore } from './authStore'
 
 export type AuthFailure = 'session-ended' | 'forbidden'
 
@@ -17,7 +18,9 @@ const effects: Readonly<Record<AuthFailure, () => void>> = {
     void (globalThis as ClerkGlobal).Clerk?.signOut?.()?.catch(() => undefined)
     toast('Your session ended. Please sign in again.', { id: 'session-ended' })
   },
-  forbidden: () => {},
+  forbidden: () => {
+    useAuthStore.getState().setForbidden()
+  },
 }
 
 export const handleAuthFailure = (status: number): void => {

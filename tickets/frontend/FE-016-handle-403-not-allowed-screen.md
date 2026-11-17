@@ -1,9 +1,9 @@
 # FE-016: A `403` shows a clear 'not allowed' screen with sign-out
 
-- **Status:** todo
+- **Status:** review
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.2 Session handling, §5.4 Owner allowlist
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)
 - **Depends on:** FE-015
 - **Can run in parallel with:** none
 - **Review size:** ~60 lines, 5 files plus tests, ~12 min
@@ -59,12 +59,12 @@ No loop: the screen replaces the app, so no more API calls are made until the us
 
 ## Acceptance criteria
 
-- [ ] A `403` shows the not-allowed screen with **Sign out**, and no app content
+- [x] A `403` shows the not-allowed screen with **Sign out**, and no app content
 - [ ] Signing out clears the flag and shows the sign-in screen
-- [ ] The screen works with the keyboard, at phone width and in both themes
-- [ ] A `401` still ends the session as in FE-015
-- [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
-- [ ] The diff stays within the review size above, or the ticket was split
+- [x] The screen works with the keyboard, at phone width and in both themes
+- [x] A `401` still ends the session as in FE-015
+- [x] Tests pass (`make web-test`) and the build passes (`make web-build`)
+- [x] The diff stays within the review size above, or the ticket was split
 
 ## How to verify by hand
 
@@ -88,3 +88,11 @@ Things that should *not* be in the diff: Account switching, support links, any c
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Branch `idelamadrid/FE-016`.
+- Added `useAuthStore` in `web/src/features/auth/authStore.ts` (`forbidden`, `setForbidden`, `reset`) with tests in `authStore.test.ts`.
+- Extended `resolveAuthView` in `web/src/features/auth/authView.ts` with `'forbidden'` (priority: `error` → `loading` → `signed-out` → `forbidden` → `signed-in`) and added tests in `authView.test.ts`.
+- Built `NotAllowedScreen` in `web/src/features/auth/NotAllowedScreen.tsx` matching the `SignInScreen` layout family with `'This account isn’t allowed to use todo-agent.'` and a **Sign out** button (default, hover, focus-visible, signing-out, error toast).
+- Wired `useAuthStore.getState().setForbidden()` into the `forbidden` branch of `handleAuthFailure` (`authFailure.ts` + `authFailure.test.ts`), and rendered `<NotAllowedScreen />` in `AuthGate.tsx` while resetting `forbidden` on sign-out.
+- `make web-test` → 81 passed (5 new); `make web-build` passes.
+- End-to-end manual sign-out check with a non-owner account left unchecked for human verification.
