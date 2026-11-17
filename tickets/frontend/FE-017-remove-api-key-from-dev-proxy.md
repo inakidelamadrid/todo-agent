@@ -1,6 +1,6 @@
 # FE-017: Remove the API key from the Vite dev proxy
 
-- **Status:** review (committed on `idelamadrid/FE-017`; not pushed)
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §7 Security, §8 acceptance criteria
 - **Assigned agent / harness / model:** Claude Code / claude-fable-5-2

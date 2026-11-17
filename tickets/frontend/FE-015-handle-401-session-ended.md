@@ -1,6 +1,6 @@
 # FE-015: A `401` from the API ends the session calmly
 
-- **Status:** review
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.2 Session handling
 - **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)

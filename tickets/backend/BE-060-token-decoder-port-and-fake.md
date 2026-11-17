@@ -1,6 +1,6 @@
 # BE-060: Token decoder port, `verify_session` and a fake decoder
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-060-token-decoder-port-and-fake`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (token verification is a port), §5.3
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud

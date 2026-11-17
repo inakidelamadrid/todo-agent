@@ -1,6 +1,6 @@
 # BE-062: `require_principal`: one dependency for people and machines
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-062-require-principal`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design, §5.3 Principal and dependency, §7
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud

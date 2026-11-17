@@ -1,6 +1,6 @@
 # FE-012: The request helper adds `Authorization: Bearer` from an injected token getter
 
-- **Status:** done (committed on `idelamadrid/FE-012`; not pushed)
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §5.2 Session handling
 - **Assigned agent / harness / model:** Claude Code / claude-fable-5-2

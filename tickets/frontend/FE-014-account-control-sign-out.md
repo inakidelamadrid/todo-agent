@@ -1,6 +1,6 @@
 # FE-014: Account control with sign-out in the app shell
 
-- **Status:** review
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.1 Sign-in and sign-out (signed-in state)
 - **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)

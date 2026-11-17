@@ -1,6 +1,6 @@
 # FE-016: A `403` shows a clear 'not allowed' screen with sign-out
 
-- **Status:** review
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.2 Session handling, §5.4 Owner allowlist
 - **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)

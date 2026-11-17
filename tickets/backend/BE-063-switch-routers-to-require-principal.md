@@ -1,6 +1,6 @@
 # BE-063: Switch the routers to `require_principal`; refuse to start without Clerk settings
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-063-require-principal-routers`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.3, §5.4 Owner allowlist, §7 Security
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud
