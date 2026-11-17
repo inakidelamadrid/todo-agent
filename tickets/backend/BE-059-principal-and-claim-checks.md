@@ -1,6 +1,6 @@
 # BE-059: `Principal` types and the pure token-claim checks
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-059-principal-and-claim-checks`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.3 Principal and dependency, §5.4 Owner allowlist
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud

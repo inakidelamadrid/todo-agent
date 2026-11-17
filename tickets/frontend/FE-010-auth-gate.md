@@ -1,6 +1,6 @@
 # FE-010: `AuthGate`: loading, error, signed-out and signed-in views
 
-- **Status:** done (committed on `idelamadrid/FE-010`; signed-in path awaits a manual Google sign-in)
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.1 Sign-in and sign-out (states to polish), §5.2
 - **Assigned agent / harness / model:** Claude Code / claude-fable-5-2

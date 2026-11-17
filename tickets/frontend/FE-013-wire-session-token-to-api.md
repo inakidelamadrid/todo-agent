@@ -1,6 +1,6 @@
 # FE-013: Send Clerk's session token with every API call
 
-- **Status:** review
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §5.2
 - **Assigned agent / harness / model:** Platform / Antigravity / Gemini 4 Argon (Medium)

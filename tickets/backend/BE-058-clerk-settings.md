@@ -1,6 +1,6 @@
 # BE-058: Clerk settings: three env vars and their parsers
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-058-clerk-settings`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.4 Owner allowlist, §5.7 Configuration and secrets
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud

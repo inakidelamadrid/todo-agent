@@ -1,6 +1,6 @@
 # BE-064: `GET /me` and the `require_user` dependency
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-064-me-endpoint`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.5 `GET /me`, §5.3
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud

@@ -1,6 +1,6 @@
 # FE-009: Install the Clerk React SDK and add `ClerkProvider`
 
-- **Status:** done (PR open; valid-key path awaits the human step)
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design (Web app), §5.7 Configuration and secrets
 - **Assigned agent / harness / model:** Claude Code / claude-fable-5-2

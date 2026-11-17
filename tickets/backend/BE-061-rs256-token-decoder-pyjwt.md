@@ -1,6 +1,6 @@
 # BE-061: Real token decoder: RS256 signature check with PyJWT
 
-- **Status:** done (implemented and verified on branch `idelamadrid/BE-061-rs256-token-decoder`; not committed — awaiting user approval)
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §4 Chosen design, §5.3, §7 Security
 - **Assigned agent / harness / model:** pi coding agent / ollama / kimi-k3:cloud

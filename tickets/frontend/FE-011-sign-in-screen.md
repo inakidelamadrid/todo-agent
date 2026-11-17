@@ -1,6 +1,6 @@
 # FE-011: The styled sign-in screen (Google only, no sign-up link)
 
-- **Status:** done (committed on `idelamadrid/FE-011`, stacked on FE-010; Google sign-in end to end awaits the owner)
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-009: User login with Clerk](../../Epics/EPIC-009-user-login-clerk.md) §5.1 Sign-in and sign-out, §3 Non-goals (no sign-up)
 - **Assigned agent / harness / model:** Claude Code / claude-fable-5-2
