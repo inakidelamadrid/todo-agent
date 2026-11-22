@@ -87,7 +87,7 @@ Things that should *not* be in the diff: Panels, stores, the write endpoints.
 
 ## Out of scope
 
-- Explain, replay and test-message client → FE-022.
+- Test-message client → FE-022; explain and replay client → FE-030.
 
 ## Notes / log
 

@@ -2,9 +2,9 @@
 
 - **Status:** todo
 - **Workspace:** frontend
-- **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
+- **Epic:** [EPIC-011: Telegram debugger: explain and replay](../../Epics/EPIC-011-telegram-debugger-explain-replay.md) (moved from EPIC-008)
 - **Assigned agent / harness / model:**
-- **Depends on:** FE-022, FE-025
+- **Depends on:** FE-030, FE-025
 - **Can run in parallel with:** FE-024, FE-027 to FE-029
 - **Review size:** ~80 lines, 3 files plus tests, ~12 min
 
@@ -18,7 +18,7 @@ The one place in the playground where a click creates real records and sends a r
 
 ## Read first
 
-- `RouteExplainerPanel` (FE-025), the client (FE-022).
+- `RouteExplainerPanel` (FE-025), the client (FE-030).
 - `web/src/components/ui/`: the dialog primitive (add shadcn's `alert-dialog` if missing).
 - BE-076: what a replay does.
 

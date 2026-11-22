@@ -4,6 +4,7 @@
 - **Type:** infrastructure (formalizes foundation **F-7 Telegram channel**)
 - **Owner:** Ignacio
 - **Depends on:** F-2 Scoped API keys, F-6 Scheduler & notifications (Redis queue); EPIC-009 User login for the debugger playground (5.7)
+- **Split out on 2026-11-22:** the notification policy and outbox → [EPIC-010](EPIC-010-telegram-notification-policy-outbox.md); the playground's route explainer and replay → [EPIC-011](EPIC-011-telegram-debugger-explain-replay.md).
 - **Used by:**
   - EPIC-002: expenses;
   - EPIC-003: brain dump, `/now`, focus check-ins;
@@ -17,17 +18,17 @@
 One private Telegram bot as the app's **conversational front door** and its **main push channel**:
 
 1. **Inbound:** receive my texts, voice notes, photos, documents, commands and button taps; verify them; de-duplicate; and **route** each update to the right feature (brain dump, expense, vault, command, or a callback for a previous message).
-2. **Outbound:** a single `TelegramService.send(...)` used by every feature for messages with inline buttons, grouped reminders, edits ("✓ done") and digests. It respects quiet hours, pause and rate limits.
+2. **Outbound:** one Telegram service for every message. Here: `service.reply`, which renders a template and sends it immediately (replies and playground test messages), plus edits and inline buttons. App-initiated messages (`service.send`, with quiet hours, pause, caps and the outbox) are [EPIC-010](EPIC-010-telegram-notification-policy-outbox.md).
 3. **AI parsing in n8n:** n8n keeps the AI-heavy flows (transcription, OCR, parsing). The **API stays the source of truth** for rules, idempotency and data.
 
-4. **Debugger playground (admin only):** a screen in the web app where an admin can watch what the bot received, replay an update through the router without side effects, preview templates and buttons, and send a test message to their own chat. See 5.7.
+4. **Debugger playground (admin only):** a screen in the web app where an admin can watch what the bot received, preview templates, and send a test message to their own chat. See 5.7. The route explainer and replay are [EPIC-011](EPIC-011-telegram-debugger-explain-replay.md).
 
 ## 2. Goals
 
 - Only I can use the bot. Everything else is ignored silently.
 - Every update is processed **exactly once** (Telegram retries can't create duplicates).
 - One routing table decides where each message goes, and it's easy to extend when a new epic adds a command.
-- Every outbound message goes through one service, with caps, quiet hours and pause enforced centrally.
+- Every outbound message goes through one service (policies for app-initiated messages: EPIC-010).
 - The setup can move from n8n to the API (or back) without changing feature code.
 - When the bot does something unexpected, an admin can find out *why* from the web app, without reading server logs or poking the production bot by hand.
 
@@ -92,17 +93,13 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 - **Response time:** acknowledge Telegram within a few seconds. Heavy work (AI, OCR) runs async, then the bot replies or edits a "Working on it…" message.
 
 ### 5.3 Outbound
-- `TelegramService.send(chat, template, data, buttons?, category, idempotency_key)`, plus `edit` and `delete`.
+- `service.reply(sender, chat_id, reply)`: render and send immediately, no queue and no policy. Used for replies and playground test messages. Plus `edit` and `delete`.
+- `service.send(...)` for app-initiated messages, with the outbox and policies: EPIC-010.
 - **Templates:** short, ES/EN, Telegram MarkdownV2 or HTML, with escaping handled centrally.
 - **Inline buttons:**
   - callback data is **signed** (HMAC) and compact (≤64 bytes: action + ID + signature), so forged or replayed taps are rejected;
   - buttons expire after N days.
-- **Central policies:**
-  - **Quiet hours** and **pause**: messages are deferred, not dropped, except categories marked urgent.
-  - **Per-category caps** (e.g. 1 grouped radar message per day).
-  - **Grouping window:** messages to the same chat within X minutes can merge.
-  - **Telegram rate limits:** a queue with throttling; on 429, honour `retry_after`.
-- **Failure handling:** retries with backoff. If Telegram is unreachable for longer than N minutes, important categories fall back to email (EPIC-007).
+- **Central policies, outbox, 429 back-off and email fallback:** moved to [EPIC-010](EPIC-010-telegram-notification-policy-outbox.md).
 
 ### 5.4 n8n contract (AI flows)
 - The API calls n8n with **authenticated webhooks** (shared secret or HMAC header) for:
@@ -121,7 +118,7 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 
 ### 5.6 Observability
 - Structured logs: update type, route chosen, latency, outcome. Message text is never logged.
-- Health indicators: webhook status, queue depth, last successful send, error rate. Shown in a small admin or status page, and alerted on failure.
+- Health indicators (status endpoint and card): moved to EPIC-010, because queue depth needs the outbox.
 
 ### 5.7 Debugger playground (admin only)
 
@@ -141,20 +138,18 @@ A screen for understanding and testing the bot. It explains decisions the code a
 | Tool | What it shows or does | Side effects |
 |---|---|---|
 | **Update log** | The last N `TelegramUpdate` rows: type, route chosen, status, latency, received at. Filter by status and route | None (read only) |
-| **Route explainer** | Take a recorded fixture, or compose an update (text, command, callback, photo with caption), and see each router step in order: secret check, allowlist, idempotency, callback → command → pending mode → keyword → default, with the rule that matched | Dry run by default: nothing stored, no handler runs. **Run for real** (opt-in, confirmed) executes the handler |
+| **Route explainer** | Moved to [EPIC-011](EPIC-011-telegram-debugger-explain-replay.md), with **Run for real** | — |
 | **Template preview** | Pick a template and sample data: the rendered HTML, the escaping applied, the button layout, and each button's callback data with its byte size (limit 64) | None |
 | **Callback decoder** | Paste callback data: valid, tampered or expired, and the action it decodes to | None |
-| **Policy explainer** | For a category and a time: would a message be sent now, deferred (quiet hours, pause), capped or grouped, and why | None |
-| **Send test message** | Send a chosen template to the admin's own chat through `TelegramService`, marked as a test | One real message, to the allowlisted chat only |
+| **Policy explainer** | For a category and a time: would a message be sent now, deferred, capped or grouped, and why (needs EPIC-010) | None |
+| **Send test message** | Send a chosen template to the admin's own chat through `service.reply`: immediately, no queue, no policy | One real message, to the allowlisted chat only |
 | **Session peek** | The current pending mode and its remaining TTL, with a **Clear** button | Clear deletes that one session key |
 | **Health** | Webhook status, queue depth, last successful send, error rate (reuses `GET /integrations/telegram/status`, BE-043) | None |
 
 **Rules**
 
-- **Dry run by default.** Only *Send test message*, *Clear session* and the route explainer's *Run for real* change anything, and each asks for confirmation.
-- **Run for real** sends the update through the same path as the webhook after the secret check (allowlist, idempotency, router, handler), as if it came from the admin's own chat. It uses a playground-only `update_id` range so it can never collide with a real Telegram update, and the resulting records are marked as playground-made.
-- **Never a way around the guards.** The route explainer does not accept updates on behalf of other users. A composed update is always processed as if it came from the admin's own chat.
-- **Test messages go only to the allowlisted chat**, through the normal sender, with a low rate limit (for example 10 per hour).
+- **Dry run by default.** Only *Send test message* and *Clear session* change anything, and each asks for confirmation (*Run for real*: EPIC-011).
+- **Test messages go only to the allowlisted chat**, through the normal sender, with a low rate limit (10 per hour). They are immediate: quiet hours do not apply to a message the admin just asked for.
 - **No message content from real traffic.** The update log shows metadata only, as the logs already do (5.6). Composed text exists only in the request and is not stored or logged.
 - **No secrets on screen:** never the bot token, the webhook secret, the HMAC key or an API key. Signatures are shown as valid or invalid, not as values.
 - **Every playground action is recorded** (who, which tool, when, outcome), without content.
@@ -167,11 +162,8 @@ A screen for understanding and testing the bot. It explains decisions the code a
 |---|---|
 | `TelegramUpdate` | updateId (unique), chatId, messageId?, type, route, status (`processed`/`ignored`/`failed`), receivedAt |
 | `TelegramSession` (Redis, TTL) | chatId, pendingMode (`vault`/`expense`/…), context, expiresAt |
-| `TelegramOutbound` | id, chatId, template, category, status (`queued`/`sent`/`deferred`/`failed`), telegramMessageId?, idempotencyKey, attempts, scheduledFor? |
-| `NotificationPolicy` | quietHours, pausedUntil?, perCategoryCaps, groupingWindowMinutes |
 | `Admin` (code only, from env for now) | userId (Clerk `sub`) |
 | `PlaygroundAction` | id, adminUserId, tool, outcome, createdAt. No content |
-| `RouteExplanation` (response only, not stored) | steps[] (name, verdict, detail), finalRoute |
 
 ## 7. Security and privacy
 
@@ -189,22 +181,20 @@ A screen for understanding and testing the bot. It explains decisions the code a
 - [ ] Only my account gets responses. Messages from others are ignored and counted.
 - [ ] Duplicate deliveries (same `update_id`) never cause duplicate records.
 - [ ] Text, voice, photo, document, every listed command and every callback button route to the correct feature, covered by router tests with recorded payloads.
-- [ ] All outbound messages go through `TelegramService`. Quiet hours, pause, caps, grouping and 429 back-off are enforced centrally.
+- [ ] All outbound messages go through the Telegram service (`service.reply` here; `service.send` and its policies in EPIC-010).
 - [ ] Tampered or expired callback buttons are rejected.
 - [ ] Dev and prod bots are separate; `make telegram-webhook` and `make telegram-info` work locally through a tunnel.
 - [ ] AI work runs async, so the user sees "Working on it…" immediately, then the result.
 - [ ] Playground: only an admin can open it or call its endpoints; a non-admin user and a machine get `403`; with the switch off the endpoints return `404`.
-- [ ] Playground: the route explainer gives the same route as the real router for every recorded fixture, and stores nothing in a dry run.
-- [ ] Playground: *Run for real* executes the handler once, only for the admin's own chat, and its records are marked as playground-made.
 - [ ] Playground: the app refuses to start with the playground switched on in production.
 - [ ] Playground: a test message reaches only the admin's own chat, and the action appears in the playground action record.
 - [ ] Playground: no bot token, secret, key or real message text is visible anywhere on the screen or in its API responses.
 
 ## 9. Ticket breakdown
 
-76 tickets (58 backend, 18 frontend), in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-031 to BE-033 need the F-6 tickets (BE-047 to BE-052), listed in `Epics/README.md`.
+53 tickets (42 backend, 11 frontend) after the split, in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-033 needs the F-6 tickets (BE-050, BE-051), listed in `Epics/README.md`. Policy and outbox tickets (BE-024 to BE-032, BE-034, BE-043, FE-003 to FE-007) are in EPIC-010; explain and replay (BE-072 to BE-076, FE-025, FE-026, FE-030) in EPIC-011.
 
-**Start anywhere here (no dependencies):** BE-004, BE-005, BE-010, BE-018, BE-020, BE-024, BE-036, FE-002, FE-006.
+**Start anywhere here (no dependencies):** BE-004, BE-005, BE-010, BE-018, BE-020, BE-036, FE-002.
 
 ### Inbound: webhook, allowlist, idempotency, router
 
@@ -223,7 +213,7 @@ A screen for understanding and testing the bot. It explains decisions the code a
 - [BE-016](../tickets/backend/BE-016-session-store-pending-mode.md): Session store port and pending mode in the router. Depends on: BE-015
 - [BE-017](../tickets/backend/BE-017-redis-session-store.md): Redis client and Redis-backed session store. Depends on: BE-016
 
-### Outbound: sender, templates, buttons, policy, outbox
+### Outbound: sender, templates, buttons
 
 - [BE-018](../tickets/backend/BE-018-telegram-sender-port.md): Sender port and a recording fake. Depends on: none
 - [BE-019](../tickets/backend/BE-019-aiogram-sender-adapter.md): aiogram Bot adapter for the sender port. Depends on: BE-004, BE-005, BE-018
@@ -231,17 +221,7 @@ A screen for understanding and testing the bot. It explains decisions the code a
 - [BE-021](../tickets/backend/BE-021-help-reply-end-to-end.md): The bot replies: /help works end to end. Depends on: BE-015, BE-019, BE-020
 - [BE-022](../tickets/backend/BE-022-signed-callback-data.md): Signed callback data (HMAC) for inline buttons. Depends on: BE-004
 - [BE-023](../tickets/backend/BE-023-inline-buttons-and-callback-verification.md): Inline buttons and verified button taps. Depends on: BE-021, BE-022
-- [BE-024](../tickets/backend/BE-024-notification-policy-quiet-hours-pause.md): Notification policy: quiet hours and pause. Depends on: none
-- [BE-025](../tickets/backend/BE-025-notification-policy-caps-grouping.md): Notification policy: per-category caps and grouping. Depends on: BE-024
-- [BE-026](../tickets/backend/BE-026-notification-policy-storage.md): Store the notification policy (table and repository). Depends on: BE-025
-- [BE-027](../tickets/backend/BE-027-notification-settings-endpoints.md): GET and PATCH /settings/notifications. Depends on: BE-026
-- [BE-028](../tickets/backend/BE-028-pause-resume-commands.md): /pause and /resume commands. Depends on: BE-021, BE-026
-- [BE-029](../tickets/backend/BE-029-telegram-outbound-table.md): Outbound message table and enqueue. Depends on: BE-010 (for the models module)
-- [BE-030](../tickets/backend/BE-030-telegram-service-send.md): telegram service send(): the one function features call. Depends on: BE-020, BE-025, BE-026, BE-029
-- [BE-031](../tickets/backend/BE-031-outbound-delivery-worker.md): Deliver due outbound messages. Depends on: BE-019, BE-030, BE-051, BE-052
-- [BE-032](../tickets/backend/BE-032-rate-limit-and-backoff.md): Honour Telegram 429 retry_after and back off. Depends on: BE-031
 - [BE-033](../tickets/backend/BE-033-working-on-it-edit.md): "Working on it…" then edit: service edit and delete. Depends on: BE-021, BE-050, BE-051
-- [BE-034](../tickets/backend/BE-034-email-fallback.md): Fall back to email when Telegram stays unreachable — **blocked**. Depends on: BE-031, BE-032, EPIC-007
 
 ### Media and n8n
 
@@ -257,22 +237,16 @@ A screen for understanding and testing the bot. It explains decisions the code a
 - [BE-039](../tickets/backend/BE-039-make-telegram-webhook-info.md): make telegram-webhook and make telegram-info. Depends on: BE-004, BE-005
 - [BE-040](../tickets/backend/BE-040-bot-setup-runbook-commands.md): Bot setup runbook and command list script. Depends on: BE-013, BE-039
 - [BE-042](../tickets/backend/BE-042-structured-webhook-logs.md): Structured logs for the webhook (never message text). Depends on: BE-015
-- [BE-043](../tickets/backend/BE-043-telegram-status-endpoint.md): GET /integrations/telegram/status. Depends on: BE-011, BE-019, BE-029
 - [BE-044](../tickets/backend/BE-044-webhook-rate-limit.md): Rate limit on the webhook. Depends on: BE-008
 - [BE-046](../tickets/backend/BE-046-start-code-pairing.md): Pair the bot with a one-time /start code — **blocked**. Depends on: BE-009, BE-021, F-1
 
 ### Frontend
 
 - [FE-002](../tickets/frontend/FE-002-extract-shared-api-request.md): Extract the shared API request helper (no behaviour change). Depends on: none
-- [FE-003](../tickets/frontend/FE-003-notification-settings-model-client.md): Notification settings: types, validation and API client. Depends on: FE-002, BE-027
-- [FE-004](../tickets/frontend/FE-004-notification-settings-form.md): Notification settings form (presentational, all states). Depends on: FE-003
-- [FE-005](../tickets/frontend/FE-005-wire-notification-settings.md): Wire notification settings: store, optimistic save, rail entry. Depends on: FE-004
-- [FE-006](../tickets/frontend/FE-006-telegram-status-card.md): Telegram status card (presentational, all states). Depends on: none
-- [FE-007](../tickets/frontend/FE-007-wire-telegram-status.md): Wire the Telegram status card into the settings sheet. Depends on: FE-005, FE-006, BE-043
 
 ### Debugger playground (5.7)
 
-27 tickets (15 backend, 12 frontend) for the first slice: update log, route explainer with the confirmed *Run for real*, template preview, send test message.
+20 tickets (10 backend, 10 frontend) for the first slice: update log, template preview, send test message.
 
 **Start here (dependencies already merged):** BE-065 and BE-069, then BE-066 to BE-068. FE-018 follows BE-067, then FE-019 and FE-020. Everything else waits on the Telegram tickets named in its `Depends on` line.
 
@@ -287,14 +261,9 @@ Backend:
 - [BE-069](../tickets/backend/BE-069-playground-actions-table.md): `playground_actions` table and its two repository functions. Depends on: none
 - [BE-070](../tickets/backend/BE-070-list-recent-updates-repository.md): Repository: list recent Telegram updates with filters. Depends on: BE-011
 - [BE-071](../tickets/backend/BE-071-playground-updates-endpoint.md): `GET /admin/telegram/updates`: the update log. Depends on: BE-068, BE-069, BE-070
-- [BE-072](../tickets/backend/BE-072-compose-update.md): Compose an update: a small form becomes an `InboundUpdate`. Depends on: BE-006
-- [BE-073](../tickets/backend/BE-073-explain-route.md): `explain_route`: the router's decision, step by step, as a pure function. Depends on: BE-009, BE-013
-- [BE-074](../tickets/backend/BE-074-playground-explain-endpoint.md): `POST /admin/telegram/explain`: dry-run route explanation. Depends on: BE-068, BE-069, BE-072, BE-073
-- [BE-075](../tickets/backend/BE-075-extract-process-update.md): Extract `process_update` from the webhook (no behaviour change). Depends on: BE-015
-- [BE-076](../tickets/backend/BE-076-playground-replay-endpoint.md): `POST /admin/telegram/replay`: run a composed update for real. Depends on: BE-074, BE-075
 - [BE-077](../tickets/backend/BE-077-template-catalog.md): Template catalog: names and required fields (pure). Depends on: BE-020
 - [BE-078](../tickets/backend/BE-078-playground-templates-endpoints.md): `GET /admin/telegram/templates` and `POST …/templates/preview`. Depends on: BE-068, BE-069, BE-077
-- [BE-079](../tickets/backend/BE-079-playground-test-message-endpoint.md): `POST /admin/telegram/test-message`: send a test to the owner's chat. Depends on: BE-030, BE-068, BE-069
+- [BE-079](../tickets/backend/BE-079-playground-test-message-endpoint.md): `POST /admin/telegram/test-message`: send a test to the owner's chat now. Depends on: BE-021, BE-068, BE-069, BE-077
 
 Frontend:
 
@@ -302,16 +271,14 @@ Frontend:
 - [FE-019](../tickets/frontend/FE-019-screen-switch-admin-entry.md): Screen switch from the URL hash, and an admin-only rail entry. Depends on: FE-018
 - [FE-020](../tickets/frontend/FE-020-playground-shell.md): Playground shell: tabs and the 'off' and 'not an admin' states. Depends on: FE-019
 - [FE-021](../tickets/frontend/FE-021-playground-client-read.md): Playground client, part 1: probe, updates, templates; connect the gate. Depends on: FE-020, BE-068, BE-071, BE-078
-- [FE-022](../tickets/frontend/FE-022-playground-client-actions.md): Playground client, part 2: explain, replay, test message. Depends on: FE-021, BE-074, BE-076, BE-079
+- [FE-022](../tickets/frontend/FE-022-playground-client-actions.md): Playground client, part 2: send test message. Depends on: FE-021, BE-079
 - [FE-023](../tickets/frontend/FE-023-update-log-panel.md): Update log panel (presentational, all states). Depends on: FE-020
 - [FE-024](../tickets/frontend/FE-024-wire-update-log.md): Wire the update log to the API. Depends on: FE-021, FE-023
-- [FE-025](../tickets/frontend/FE-025-route-explainer-panel.md): Route explainer panel: composer form and step list (presentational). Depends on: FE-020
-- [FE-026](../tickets/frontend/FE-026-wire-route-explainer-run-for-real.md): Wire the explainer, with the confirmed **Run for real**. Depends on: FE-022, FE-025
 - [FE-027](../tickets/frontend/FE-027-template-preview-panel.md): Template preview panel (presentational, all states). Depends on: FE-020
 - [FE-028](../tickets/frontend/FE-028-wire-template-preview.md): Wire the template preview to the API. Depends on: FE-021, FE-027
 - [FE-029](../tickets/frontend/FE-029-send-test-message.md): Send test message: panel, confirmation and wiring. Depends on: FE-021, FE-022, FE-028
 
-Not ticketed yet (later tools): callback decoder (with composing callback taps and button preview), policy explainer, session peek, health, a screen for the action record, an admins table.
+Not ticketed yet (later tools): callback decoder (with composing callback taps and button preview), policy explainer (after EPIC-010), session peek, health, a screen for the action record, an admins table.
 
 ### Not ticketed here
 
@@ -332,7 +299,7 @@ Not ticketed yet (later tools): callback decoder (with composing callback taps a
    - (assumed) Until pairing is designed (BE-046), the ID comes from `TELEGRAM_ALLOWED_USER_ID`.
 4. Bot reply language: Spanish, English, or mirror the message?
    - Answer: English
-5. Default quiet hours, and which categories may break through them (e.g. "due today" bills)?
+5. Default quiet hours, and which categories may break through them (e.g. "due today" bills)? (now EPIC-010)
    - Answer: Quiet hours 20:00 - 8:00
    - (assumed) No category breaks through quiet hours by default; `urgentCategories` is configurable (BE-024, BE-027).
 6. Should important notifications fall back to email when Telegram fails?
@@ -348,7 +315,7 @@ Not ticketed yet (later tools): callback decoder (with composing callback taps a
 10. Playground: available in production, or development only? (The switch `TELEGRAM_PLAYGROUND_ENABLED` covers both; this decides its production default.)
    - Answer: No. Development only.
    - (assumed) Enforced by refusing to start when the switch is on in production; how the app knows it is in production (for example an `APP_ENV` setting) is decided when unfolding.
-11. Playground: may the route explainer ever *execute* the handler (a real end-to-end replay), or stay dry run only? Recommended: dry run only; real tests go through the dev bot.
+11. Playground (now EPIC-011): may the route explainer ever *execute* the handler (a real end-to-end replay), or stay dry run only? Recommended: dry run only; real tests go through the dev bot.
    - Answer: Yes, as an explicit, confirmed *Run for real* mode. Dry run stays the default.
 12. Playground: which tools first? Recommended first slice: update log, route explainer, template preview. Then send test message, then the rest.
    - Answer: Update log, route explainer, template preview, send test message.

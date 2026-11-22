@@ -2,7 +2,7 @@
 
 - **Status:** todo
 - **Workspace:** backend
-- **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3 Central policies
+- **Epic:** [EPIC-010: Telegram notification policy and outbox](../../Epics/EPIC-010-telegram-notification-policy-outbox.md) (moved from EPIC-008)
 - **Assigned agent / harness / model:**
 - **Depends on:** BE-024
 - **Can run in parallel with:** none

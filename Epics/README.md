@@ -18,8 +18,10 @@ Epics are feature-level requirements, polished by the human before they become w
 | Epic | Status | Summary |
 |---|---|---|
 | [EPIC-007: Email integration](EPIC-007-email-integration.md) | draft | Outbound transactional email (domain auth, templates, queue, bounces, unsubscribe), inbound forward-to-app routing, Mailpit for dev |
-| [EPIC-008: Telegram integration](EPIC-008-telegram-integration.md) | in-tickets | One private bot: verified webhook, allowlist, idempotency, router to features, central outbound service with quiet hours/caps, the n8n AI contract, dev/prod bots, and an admin-only debugger playground (5.7) |
+| [EPIC-008: Telegram integration](EPIC-008-telegram-integration.md) | in-tickets | One private bot: verified webhook, allowlist, idempotency, router to features, central outbound service (immediate replies; policies in EPIC-010), the n8n AI contract, dev/prod bots, and an admin-only debugger playground (5.7; explain/replay in EPIC-011) |
 | [EPIC-009: User login with Clerk](EPIC-009-user-login-clerk.md) | in-tickets | Sign-in for the owner with Clerk: sign-in screen in the web app, verified session tokens in the API, API keys kept for machines, owner-only allowlist |
+| [EPIC-010: Telegram notification policy and outbox](EPIC-010-telegram-notification-policy-outbox.md) | in-tickets | Split from EPIC-008: `service.send` with quiet hours, pause, caps, grouping, the outbound queue and worker, 429 back-off, email fallback, notification settings and the status card |
+| [EPIC-011: Telegram debugger: explain and replay](EPIC-011-telegram-debugger-explain-replay.md) | in-tickets | Split from EPIC-008 §5.7: the playground's route explainer and the confirmed *Run for real* replay |
 
 ## Lifecycle
 
@@ -36,7 +38,7 @@ Several epics need these. Build them first, as their own tickets.
 | **F-3 Google Drive integration** | OAuth with the `drive.file` scope (the app only sees files it created), a root folder, and an upload/link service. The database stores only file IDs and hashes. | 001, 002 (receipts), 006 |
 | **F-4 File storage and hashing** | SHA-256 of every stored document, so later tampering can be detected. | 001, 002, 006, 007 (inbound attachments) |
 | **F-5 AI service** | Summaries, parsing, ranking and extraction, grounded only in my data, with strict output schemas and minimal data sent to the provider. | 001, 002, 003, 005, 006 |
-| **F-6 Scheduler & notifications** | Scheduled jobs and a queue (Redis): reminders, invites, digests. One notification policy (quiet hours, pause, caps, grouping) for every channel. | 001, 003, 004, 005, 007, 008 |
+| **F-6 Scheduler & notifications** | Scheduled jobs and a queue (Redis): reminders, invites, digests. One notification policy (quiet hours, pause, caps, grouping) for every channel. | 001, 003, 004, 005, 007, 008, 010 |
 | **F-7 Telegram channel** | Delivered by **EPIC-008**. | 002, 003, 004, 005, 006 |
 | **F-8 Email channel** | Delivered by **EPIC-007**. | 001, 003, 004, 005, 006 |
 

@@ -2,7 +2,7 @@
 
 - **Status:** todo
 - **Workspace:** frontend
-- **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
+- **Epic:** [EPIC-011: Telegram debugger: explain and replay](../../Epics/EPIC-011-telegram-debugger-explain-replay.md) (moved from EPIC-008)
 - **Assigned agent / harness / model:**
 - **Depends on:** FE-020
 - **Can run in parallel with:** FE-021 to FE-024, FE-027
