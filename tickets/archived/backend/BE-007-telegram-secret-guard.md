@@ -1,6 +1,6 @@
 # BE-007: Webhook guard: require_telegram_secret dependency
 
-- **Status:** todo
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.2, §7
 - **Assigned agent / harness / model:**

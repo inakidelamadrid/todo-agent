@@ -1,6 +1,6 @@
 # BE-013: Router: callback, command and default routes
 
-- **Status:** todo
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.2 Router steps 1, 2, 5
 - **Assigned agent / harness / model:**

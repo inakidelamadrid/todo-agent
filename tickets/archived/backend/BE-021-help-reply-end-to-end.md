@@ -1,6 +1,6 @@
 # BE-021: The bot replies: /help works end to end
 
-- **Status:** in review
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3, §8
 - **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5

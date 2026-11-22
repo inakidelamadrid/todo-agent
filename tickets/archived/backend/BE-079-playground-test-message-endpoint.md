@@ -1,6 +1,6 @@
 # BE-079: `POST /admin/telegram/test-message`: send a test to the owner's chat now
 
-- **Status:** in review
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
 - **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5

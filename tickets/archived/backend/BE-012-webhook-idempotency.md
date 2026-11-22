@@ -1,6 +1,6 @@
 # BE-012: Webhook processes each update once
 
-- **Status:** todo
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.2, §8
 - **Assigned agent / harness / model:**

@@ -1,6 +1,6 @@
 # FE-022: Playground client, part 2: send test message
 
-- **Status:** review (implemented on branch `idelamadrid/FE-021` with FE-021, FE-022, FE-027, FE-028 and FE-029; synced with main after BE-078 and BE-079 merged; not committed, awaiting user approval)
+- **Status:** done
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
 - **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
