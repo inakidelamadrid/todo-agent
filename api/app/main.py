@@ -19,6 +19,7 @@ from app.db import build_engine, dispose_engine
 from app.routes import me, public
 from app.security import API_KEY_HEADER_NAME, require_principal, require_user
 from app.settings import clerk_enabled, get_settings
+from app.telegram.playground.router import playground_router
 
 
 @asynccontextmanager
@@ -66,6 +67,11 @@ def create_app() -> FastAPI:
             "CLERK_JWT_PUBLIC_KEY, CLERK_AUTHORIZED_PARTIES and "
             "CLERK_ALLOWED_USER_IDS must all be set"
         )
+    if settings.telegram_playground_enabled and settings.app_env == "production":
+        # Names the variables, never a value.
+        raise RuntimeError(
+            "TELEGRAM_PLAYGROUND_ENABLED must be false when APP_ENV is production"
+        )
 
     app = FastAPI(title="todo-agent API", version=settings.app_version, lifespan=_lifespan)
     app.openapi = _openapi_with_api_key_scheme(app)  # type: ignore[method-assign]
@@ -76,6 +82,8 @@ def create_app() -> FastAPI:
     app.include_router(payments_router, dependencies=[Depends(require_principal)])
     # A person, not a script: machines get 403 here (BE-064).
     app.include_router(me.router, dependencies=[Depends(require_user)])
+    # Admin-only debugger playground, 404 when the switch is off (BE-068).
+    app.include_router(playground_router)
     return app
 
 

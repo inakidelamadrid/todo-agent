@@ -17,9 +17,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader, HTTPBearer, HTTPAuthorizationCredentials
 
-from app.principal import ClerkRules, Machine, Principal, User
+from app.principal import ClerkRules, Machine, Principal, User, is_admin
 from app.session_token import DecodeToken, get_token_decoder, verify_session
-from app.settings import Settings, get_settings, parse_api_keys, parse_csv
+from app.settings import Settings, get_settings, parse_admin_user_ids, parse_api_keys, parse_csv
 
 API_KEY_HEADER_NAME = "X-API-Key"
 
@@ -31,6 +31,7 @@ MACHINE_LABEL = "api-key"  # placeholder until F-2 names keys
 
 DETAIL_INVALID = "Invalid or missing credentials"
 DETAIL_NOT_ALLOWED = "Not allowed"
+DETAIL_ADMIN_REQUIRED = "Admin access is required"
 _CHALLENGES = {"WWW-Authenticate": "Bearer, ApiKey"}
 
 
@@ -152,4 +153,20 @@ def require_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="A signed-in user is required",
         )
+    return principal
+
+
+def require_admin(
+    principal: Annotated[Principal, Depends(require_principal)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> User:
+    """An admin person; 403 for any other caller (BE-066). Pure composition:
+    missing or bad credentials never reach this function — require_principal
+    already answered 401."""
+    if not is_admin(principal, parse_admin_user_ids(settings.admin_user_ids)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=DETAIL_ADMIN_REQUIRED,
+        )
+    assert isinstance(principal, User)  # is_admin is only true for a User
     return principal

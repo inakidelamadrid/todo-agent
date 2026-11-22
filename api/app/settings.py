@@ -7,6 +7,7 @@ request time, and the app can never run with auth turned off.
 
 import re
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +24,17 @@ def parse_api_keys(raw: str) -> tuple[str, ...]:
 def parse_csv(raw: str) -> tuple[str, ...]:
     """Split a comma-separated env value: trim, drop empties."""
     return tuple(part.strip() for part in raw.split(",") if part.strip())
+
+
+@lru_cache
+def parse_admin_user_ids(raw: str) -> tuple[str, ...]:
+    """``ADMIN_USER_IDS`` as a tuple, parsed once per process.
+
+    Request paths (``require_admin``, ``GET /me``) call this instead of
+    re-parsing per request. The cache key is the raw string; Settings is
+    frozen and process-wide, so the mapping never goes stale.
+    """
+    return parse_csv(raw)
 
 
 def normalize_pem(raw: str) -> str:
@@ -43,6 +55,8 @@ class Settings(BaseSettings):
 
     api_keys: str = ""
     app_version: str = "0.1.0"
+    app_env: Literal["development", "production"] = "development"
+    telegram_playground_enabled: bool = False
 
     postgres_user: str = "todo_agent"
     postgres_password: SecretStr = SecretStr("")
@@ -108,6 +122,12 @@ def clerk_enabled(settings: Settings) -> bool:
         and parse_csv(settings.clerk_authorized_parties)
         and parse_csv(settings.clerk_allowed_user_ids)
     )
+
+
+def playground_allowed(settings: Settings) -> bool:
+    """True only when the playground is switched on and never in production
+    (BE-068; epic question 10: development only)."""
+    return settings.telegram_playground_enabled and settings.app_env != "production"
 
 
 @lru_cache
