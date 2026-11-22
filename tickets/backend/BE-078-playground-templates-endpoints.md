@@ -1,9 +1,9 @@
 # BE-078: `GET /admin/telegram/templates` and `POST …/templates/preview`
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** BE-068, BE-069, BE-077
 - **Can run in parallel with:** BE-071 to BE-076
 - **Public endpoint?** no
@@ -110,3 +110,7 @@ Things that should *not* be in the diff: Sending, buttons, editing templates.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `schemas.py` did not exist yet; created it. `TemplateRequest` uses `extra="forbid"`, so BE-079 can reuse it and an extra `chatId` is a 422.
+- Rejected previews (404 / 422 from `render`) are recorded as `rejected` and committed before raising, because the request session rolls back on error. Schema-limit 422s never reach the route and are not recorded.
+- `_render_or_http_error` is shared so BE-079 maps render errors the same way.
