@@ -1,9 +1,9 @@
 # BE-020: Message templates with central HTML escaping
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** none
 - **Can run in parallel with:** BE-004 to BE-019
 - **Public endpoint?** no
@@ -118,3 +118,8 @@ Things that should *not* be in the diff: sending; Spanish texts; feature templat
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Help lines follow the BotFather command list in EPIC-008 §5.1.
+- `MESSAGE_TEXT_MAX_CHARS` is defined here too, because BE-018 (which also defines it in `sender.py`) is not merged yet. Fold into one constant once both land.
+- **For BE-021:** BE-015's `_unknown_command` returns `Reply(template="unknown_command")` with no data, so `render` raises `MissingTemplateData`. It should pass `{"command": update.command}`.
+- Extra tests: braces in values are not re-formatted, every handler's template exists, the table is immutable.
