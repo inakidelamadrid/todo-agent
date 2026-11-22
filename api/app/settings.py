@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     clerk_jwt_public_key: str = ""
     clerk_authorized_parties: str = ""
     clerk_allowed_user_ids: str = ""
+    admin_user_ids: str = ""  # optional; empty means no admin exists
 
     @field_validator("api_keys")
     @classmethod
