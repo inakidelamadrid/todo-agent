@@ -31,6 +31,11 @@ class Machine:
 
 Principal = User | Machine
 
+
+def is_admin(principal: Principal, admin_user_ids: tuple[str, ...]) -> bool:
+    """True only for a User whose user_id is in the admin list."""
+    return isinstance(principal, User) and principal.user_id in admin_user_ids
+
 RejectionReason = Literal[
     "malformed", "expired", "not_yet_valid", "wrong_party", "not_owner"
 ]
