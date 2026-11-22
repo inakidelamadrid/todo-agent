@@ -1,9 +1,9 @@
 # BE-018: Sender port and a recording fake
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** none
 - **Can run in parallel with:** BE-004 to BE-017
 - **Public endpoint?** no
@@ -115,3 +115,6 @@ Things that should *not* be in the diff: aiogram imports, HTTP calls, policy or 
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `answer_callback` passes `""` for "no notice"; the adapter (BE-019) turns it into `None`.
+- `RateLimited.__init__` takes `retry_after` positionally or by keyword; the message holds only the seconds.
