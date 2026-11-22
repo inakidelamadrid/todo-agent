@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic.alias_generators import to_camel
 
 DataKey = Annotated[str, StringConstraints(min_length=1, max_length=40)]
 DataValue = Annotated[str, StringConstraints(max_length=1000)]
@@ -43,3 +44,11 @@ class TemplatePreview(BaseModel):
 
     html: str
     length: int
+
+
+class TestMessageSent(BaseModel):
+    """The Telegram message ID of the test message (BE-079)."""
+
+    model_config = ConfigDict(frozen=True, alias_generator=to_camel, populate_by_name=True)
+
+    message_id: int

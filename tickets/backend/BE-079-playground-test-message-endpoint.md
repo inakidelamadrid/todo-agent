@@ -1,9 +1,9 @@
 # BE-079: `POST /admin/telegram/test-message`: send a test to the owner's chat now
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** BE-021, BE-068, BE-069, BE-077
 - **Can run in parallel with:** BE-070, BE-071
 - **Public endpoint?** no
@@ -110,3 +110,6 @@ Things that should *not* be in the diff: Free-text messages, other recipients, q
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- The template is rendered once up front only to map its errors to 404 / 422 before sending; `service.reply` renders it again to send. Cheap and pure, and it keeps `service.reply` the one send path.
+- Telegram 429 (`RateLimited`) is a `502` like any other refusal; retrying is not this endpoint's job.

@@ -6,7 +6,8 @@ both guards: ``require_admin`` (401/403, BE-066) runs before
 401 whether the feature is on or off, so the switch reveals nothing.
 """
 
-from typing import Annotated
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, NoReturn
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -16,13 +17,19 @@ from app.db import get_session
 from app.principal import User
 from app.security import require_admin
 from app.settings import Settings, get_settings, playground_allowed
-from app.telegram.playground.repository import record_action
+from app.telegram import service
+from app.telegram.aiogram_sender import get_sender
+from app.telegram.handlers import Reply
+from app.telegram.playground.limits import TEST_MESSAGES_PER_HOUR, may_send
+from app.telegram.playground.repository import count_actions_since, record_action
 from app.telegram.playground.schemas import (
     TemplateEntry,
     TemplateList,
     TemplatePreview,
     TemplateRequest,
+    TestMessageSent,
 )
+from app.telegram.sender import SendFailed, TelegramNotConfigured, TelegramSender
 from app.telegram.templates import MissingTemplateData, UnknownTemplate, list_templates, render
 
 
@@ -90,3 +97,49 @@ async def preview(
         raise
     await record_action(session, admin.user_id, "template_preview", "ok")
     return TemplatePreview(html=text, length=len(text))
+
+
+async def _record_and_raise(
+    session: AsyncSession, admin: User, outcome: str, error: HTTPException
+) -> NoReturn:
+    """Record a refused attempt and commit it before raising: the request
+    session rolls back on error, and every attempt must be on record."""
+    await record_action(session, admin.user_id, "test_message", outcome)
+    await session.commit()
+    raise error
+
+
+@playground_router.post("/test-message", response_model=TestMessageSent)
+async def test_message(
+    body: TemplateRequest,
+    admin: Annotated[User, Depends(require_admin)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    sender: Annotated[TelegramSender, Depends(get_sender)],
+) -> TestMessageSent:
+    """Send ``body.template`` to the allowlisted chat now (BE-079): no queue,
+    no policy, like a reply. The recipient comes from settings only."""
+    since = datetime.now(timezone.utc) - timedelta(hours=1)
+    if not may_send(await count_actions_since(session, "test_message", since)):
+        detail = f"Test message limit reached ({TEST_MESSAGES_PER_HOUR} per hour)"
+        await _record_and_raise(session, admin, "rejected", HTTPException(429, detail))
+    try:
+        _render_or_http_error(body)
+    except HTTPException as error:
+        await _record_and_raise(session, admin, "rejected", error)
+    chat_id = settings.telegram_allowed_user_id
+    if chat_id is None:
+        await _record_and_raise(
+            session, admin, "failed", HTTPException(409, "TELEGRAM_ALLOWED_USER_ID is not set")
+        )
+    try:
+        sent = await service.reply(sender, chat_id, Reply(template=body.template, data=body.data))
+    except TelegramNotConfigured:
+        await _record_and_raise(
+            session, admin, "failed", HTTPException(409, "TELEGRAM_BOT_TOKEN is not set")
+        )
+    except SendFailed as error:
+        detail = f"Telegram refused the message ({type(error).__name__})"
+        await _record_and_raise(session, admin, "failed", HTTPException(502, detail))
+    await record_action(session, admin.user_id, "test_message", "ok")
+    return TestMessageSent(message_id=sent.message_id)
