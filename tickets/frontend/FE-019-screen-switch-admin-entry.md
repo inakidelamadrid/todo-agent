@@ -1,9 +1,9 @@
 # FE-019: Screen switch from the URL hash, and an admin-only rail entry
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-023` with FE-018, FE-019, FE-020 and FE-023; approved by the user, PR open)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-018
 - **Can run in parallel with:** BE-065 to BE-079
 - **Review size:** ~70 lines, 4 files plus tests, ~12 min
@@ -88,3 +88,9 @@ Things that should *not* be in the diff: The playground UI, a router dependency,
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `lib/screen.ts`: pure `resolveScreen`; `useHashScreen` uses `useSyncExternalStore` over `hashchange` (the only side effect).
+- `AppShell` takes `items`; non-current items get a hover wash. Bills markup otherwise unchanged; `<main id="bills">` kept.
+- Below 420 px the wordmark becomes `sr-only` (mark stays) so two entries and the account fit the top bar; seen overlapping at 375 px without it.
+- `App.tsx` renders `PlaygroundScreen` (FE-020/023) instead of a placeholder `<p>`, since all four tickets share this branch.
+- Checked in Chrome with a preview harness (no Clerk): admin entry, `#playground`, Back/Forward, non-admin sees Bills at `#playground`.

@@ -1,9 +1,9 @@
 # FE-020: Playground shell: tabs and the 'off' and 'not an admin' states
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-023` with FE-018, FE-019, FE-020 and FE-023; approved by the user, PR open)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-019
 - **Can run in parallel with:** BE-065 to BE-079
 - **Review size:** ~90 lines, 3 files plus tests, ~12 min
@@ -94,3 +94,9 @@ Things that should *not* be in the diff: API calls, tool panels, stores.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Added shadcn `tabs` (Base UI). Fixed the generated file: it targeted `data-horizontal`/`data-vertical`, but this Base UI sets `data-orientation=…`, so the line underline and column layout never applied. Import changed from `cn` package to `@/lib/utils`.
+- `gate.ts` (`gateFromProbe`) + tests; `PlaygroundShell.tsx` renders loading, ready, off, not-admin, error from the `gate` prop; no fetching.
+- Tabs: line variant with a scarlet underline, inset focus ring, arrow keys; the strip scrolls sideways at phone width without page scroll.
+- `PlaygroundScreen.tsx` passes `gate="ready"` for now; FE-021 swaps in the probe.
+- Checked all five views in Chrome, light and dark, desktop and 375 px.
