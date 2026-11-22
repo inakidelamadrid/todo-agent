@@ -20,12 +20,15 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.bills import models as _models  # noqa: F401
 from app.db import Base
 from app.settings import Settings
+from app.telegram import models as _telegram_models  # noqa: F401
 from app.telegram.playground import models as _playground_models  # noqa: F401
 
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Never disable the app's loggers: tests import app modules before any
+    # migration runs, and fileConfig's default would silence them.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 

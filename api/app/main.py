@@ -20,6 +20,7 @@ from app.routes import me, public
 from app.security import API_KEY_HEADER_NAME, require_principal, require_user
 from app.settings import clerk_enabled, get_settings
 from app.telegram.playground.router import playground_router
+from app.telegram.webhook import telegram_webhook_router
 
 
 @asynccontextmanager
@@ -76,6 +77,8 @@ def create_app() -> FastAPI:
     app = FastAPI(title="todo-agent API", version=settings.app_version, lifespan=_lifespan)
     app.openapi = _openapi_with_api_key_scheme(app)  # type: ignore[method-assign]
     app.include_router(public.router)
+    # Public by ticket BE-008: guarded by the Telegram secret token, not an API key.
+    app.include_router(telegram_webhook_router)
     # Protected by default: every business router accepts a person (Clerk
     # session) or a machine (API key) through one shared dependency.
     app.include_router(bills_router, dependencies=[Depends(require_principal)])

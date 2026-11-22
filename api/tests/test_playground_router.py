@@ -36,7 +36,9 @@ def playground_client(
 def playground_off_client(
     make_client: Callable[[str], TestClient], monkeypatch: pytest.MonkeyPatch
 ) -> TestClient:
-    """Real app, switch off (the default), OWNER still admin."""
+    """Real app, switch off, OWNER still admin. The toggle is set explicitly:
+    a developer's api/.env may turn the playground on locally."""
+    monkeypatch.setenv("TELEGRAM_PLAYGROUND_ENABLED", "false")
     monkeypatch.setenv("ADMIN_USER_IDS", OWNER_USER_ID)
     return make_client(KEY_ONE)
 
