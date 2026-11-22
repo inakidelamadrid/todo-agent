@@ -10,8 +10,11 @@ there so Spanish can be added without changing callers.
 """
 
 import html
+import string
 from collections.abc import Mapping
 from types import MappingProxyType
+
+from pydantic import BaseModel, ConfigDict
 
 DEFAULT_LANG = "en"
 MESSAGE_TEXT_MAX_CHARS = 4096  # Telegram's limit
@@ -77,3 +80,27 @@ def render(template: str, data: Mapping[str, str] | None = None, lang: str = DEF
     if len(result) > MESSAGE_TEXT_MAX_CHARS:
         raise ValueError(f"{template}: rendered text exceeds {MESSAGE_TEXT_MAX_CHARS} characters")
     return result
+
+
+class TemplateInfo(BaseModel):
+    """A template's name and the data fields it needs (BE-077)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    fields: tuple[str, ...]  # in order of first appearance, no duplicates
+
+
+def template_fields(text: str) -> tuple[str, ...]:
+    """The ``str.format`` fields in ``text``, read from the text itself so the
+    catalog cannot drift. Escaped braces (``{{``, ``}}``) are not fields."""
+    names = (field for _, field, _, _ in string.Formatter().parse(text) if field is not None)
+    return tuple(dict.fromkeys(names))
+
+
+def list_templates(lang: str = DEFAULT_LANG) -> tuple[TemplateInfo, ...]:
+    """Every template with its fields, sorted by name."""
+    return tuple(
+        TemplateInfo(name=name, fields=template_fields(texts.get(lang, texts[DEFAULT_LANG])))
+        for name, texts in sorted(TEMPLATES.items())
+    )

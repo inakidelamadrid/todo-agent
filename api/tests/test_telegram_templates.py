@@ -12,7 +12,9 @@ from app.telegram.templates import (
     TEMPLATES,
     MissingTemplateData,
     UnknownTemplate,
+    list_templates,
     render,
+    template_fields,
 )
 
 
@@ -81,3 +83,31 @@ def test_table_is_immutable() -> None:
         TEMPLATES["new"] = {"en": "x"}  # type: ignore[index]
     with pytest.raises(TypeError):
         TEMPLATES["help"]["en"] = "x"  # type: ignore[index]
+
+
+# --- Catalog (BE-077) -------------------------------------------------------
+
+
+def test_fields_in_order_without_duplicates() -> None:
+    assert template_fields("{b} and {a}, then {b} again") == ("b", "a")
+
+
+def test_no_fields_for_plain_text() -> None:
+    assert template_fields("That isn't available yet.") == ()
+    assert template_fields("") == ()
+
+
+def test_escaped_braces_are_not_fields() -> None:
+    assert template_fields("{{literal}} and {real} and }}") == ("real",)
+
+
+def test_list_templates_covers_every_template_sorted() -> None:
+    catalog = list_templates()
+    assert [info.name for info in catalog] == sorted(TEMPLATES)
+    assert dict((i.name, i.fields) for i in catalog)["unknown_command"] == ("command",)
+    assert dict((i.name, i.fields) for i in catalog)["help"] == ()
+
+
+def test_every_listed_template_renders_with_its_fields_filled() -> None:
+    for info in list_templates():
+        render(info.name, {field: "x" for field in info.fields})
