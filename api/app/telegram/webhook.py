@@ -11,8 +11,11 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import get_session
 from app.settings import Settings, get_settings
+from app.telegram import repository
 from app.telegram.allowlist import is_allowed
 from app.telegram.inbound import parse_inbound
 from app.telegram.security import require_telegram_secret
@@ -39,7 +42,11 @@ telegram_webhook_router = APIRouter(
 async def receive_update(
     payload: dict[str, Any],
     settings: Annotated[Settings, Depends(get_settings)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> WebhookAck:
+    """Order matters and must stay: secret (router dep) → parse → allowlist →
+    claim. A stranger's update never reaches the database; a duplicate
+    delivery is acknowledged and dropped before any work happens (BE-012)."""
     ack = WebhookAck()
     try:
         inbound = parse_inbound(payload)
@@ -52,4 +59,8 @@ async def receive_update(
         # be able to tell the bot exists, and logs carry no identifiers.
         logger.info("telegram.ignored")
         return ack
+    if not await repository.claim_update(session, inbound):
+        return ack  # duplicate delivery: already handled exactly once
+    # BE-015 inserts dispatch here.
+    await repository.mark_update(session, inbound.update_id, "processed")
     return ack
