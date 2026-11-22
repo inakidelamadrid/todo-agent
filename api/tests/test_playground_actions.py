@@ -145,8 +145,11 @@ def test_migration_upgrade_and_downgrade(migrated_test_db: str) -> None:
                 "WHERE table_name = 'playground_actions')",
             )
         )
+    # Anchor to the bills revision (the one before playground_actions): a
+    # later migration appended after this one must not change what this
+    # test exercises — playground_actions' own upgrade and downgrade.
     try:
-        command.downgrade(cfg, "-1")
+        command.downgrade(cfg, "c983c9c12143")
         assert asyncio.run(_table_exists()) is False
         command.upgrade(cfg, "head")
         assert asyncio.run(_table_exists()) is True

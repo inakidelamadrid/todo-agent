@@ -9,6 +9,8 @@ import logging
 import pytest
 from fastapi.testclient import TestClient
 
+from app.main import create_app
+from app.settings import get_settings
 from app.telegram.allowlist import is_allowed
 from app.telegram.inbound import InboundUpdate, UpdateKind, to_inbound
 from app.telegram.security import TELEGRAM_SECRET_HEADER
@@ -45,10 +47,18 @@ def test_update_without_user_is_not_allowed() -> None:
 
 
 @pytest.fixture()
-def webhook_client(make_client, monkeypatch: pytest.MonkeyPatch) -> TestClient:
+def webhook_client(monkeypatch: pytest.MonkeyPatch, migrated_test_db: str) -> TestClient:
+    """Real app on the per-worker test DB (the owner path claims rows)."""
+    monkeypatch.setenv("API_KEYS", KEY_ONE)
+    monkeypatch.setenv("POSTGRES_DB", migrated_test_db)
     monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", SECRET)
     monkeypatch.setenv("TELEGRAM_ALLOWED_USER_ID", str(OWNER))
-    return make_client(KEY_ONE)
+    get_settings.cache_clear()
+    try:
+        with TestClient(create_app()) as client:
+            yield client
+    finally:
+        get_settings.cache_clear()
 
 
 def test_webhook_drops_stranger_with_200_and_logs_counter(

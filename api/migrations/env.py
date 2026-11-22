@@ -26,7 +26,9 @@ from app.telegram.playground import models as _playground_models  # noqa: F401
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Never disable the app's loggers: tests import app modules before any
+    # migration runs, and fileConfig's default would silence them.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 
