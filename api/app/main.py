@@ -19,18 +19,22 @@ from app.db import build_engine, dispose_engine
 from app.routes import me, public
 from app.security import API_KEY_HEADER_NAME, require_principal, require_user
 from app.settings import clerk_enabled, get_settings
+from app.telegram.aiogram_sender import open_sender
 from app.telegram.playground.router import playground_router
 from app.telegram.webhook import telegram_webhook_router
 
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Create the DB engine once; dispose it on shutdown. Lazy: no
-    connection is opened until a route actually needs the database."""
-    engine = build_engine(get_settings())
+    """Create the DB engine and the Telegram sender once; close both on
+    shutdown. Lazy: no connection is opened until a route needs one."""
+    settings = get_settings()
+    engine = build_engine(settings)
     app.state.db_engine = engine
     try:
-        yield
+        async with open_sender(settings.telegram_bot_token.get_secret_value()) as sender:
+            app.state.telegram_sender = sender
+            yield
     finally:
         await dispose_engine(engine)
 
