@@ -1,9 +1,9 @@
 # BE-019: aiogram Bot adapter for the sender port
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** BE-004, BE-005, BE-018
 - **Can run in parallel with:** none
 - **Public endpoint?** no
@@ -110,3 +110,8 @@ Things that should *not* be in the diff: queueing, retries, policy checks, templ
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Stacked on BE-018 (not yet merged when this was built); merge BE-018 first.
+- aiogram names checked against the installed 3.32.0: `TelegramRetryAfter.retry_after`, `AiogramError` (base of API and network errors), `LinkPreviewOptions(is_disabled=True)`.
+- Added `open_sender(token)`, an async context manager, so `main.py` never imports `aiogram.Bot` and closing the session lives next to creating it. Extra test: `test_open_sender_closes_bot_session`.
+- Errors are raised `from None`: the aiogram exception (whose request carries the message text) is not chained.
