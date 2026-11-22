@@ -6,6 +6,7 @@ import { useAuthStore } from './authStore'
 import { resolveAuthView } from './authView'
 import { NotAllowedScreen } from './NotAllowedScreen'
 import { SignInScreen } from './SignInScreen'
+import { useSessionStore } from './useSessionStore'
 
 const Centered = ({ children }: { readonly children: ReactNode }) => (
   <main className="grid min-h-dvh place-items-center bg-background px-6 text-foreground">
@@ -18,11 +19,18 @@ export const AuthGate = ({ children }: { readonly children: ReactNode }) => {
   const loadFailed = useClerk().status === 'error'
   const forbidden = useAuthStore((s) => s.forbidden)
   const reset = useAuthStore((s) => s.reset)
+  const loadSession = useSessionStore((s) => s.load)
+  const resetSession = useSessionStore((s) => s.reset)
   const view = resolveAuthView({ isLoaded, isSignedIn, loadFailed, forbidden })
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && forbidden) reset()
   }, [isLoaded, isSignedIn, forbidden, reset])
+
+  useEffect(() => {
+    if (view === 'signed-in') void loadSession()
+    if (view === 'signed-out') resetSession()
+  }, [view, loadSession, resetSession])
 
   if (view === 'signed-in') return children
   if (view === 'forbidden') return <NotAllowedScreen />

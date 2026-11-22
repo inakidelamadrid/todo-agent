@@ -1,9 +1,9 @@
 # FE-018: Session roles: `/me` client, `isAdmin` and a small store
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-023` with FE-018, FE-019, FE-020 and FE-023; approved by the user, PR open)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** BE-067
 - **Can run in parallel with:** BE-065 to BE-069
 - **Review size:** ~60 lines, 4 files plus tests, ~10 min
@@ -90,3 +90,8 @@ Things that should *not* be in the diff: Any admin UI, navigation, playground co
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `session.ts`: `Me`, pure `isAdmin` (the only reader of `roles`), `toMe` (missing `roles` → `[]`), `fetchMe(request)`.
+- `useSessionStore.ts`: `createSessionStore(loadMe)` factory like the bills store; `load` is a no-op while loading or ready; an error leaves `me` null.
+- `AuthGate.tsx`: `load()` when the view is `signed-in`, `reset()` when `signed-out`.
+- Not checked against a live sign-in here (no `web/.env.local` in this workspace): confirm one `/api/me` request by hand.

@@ -1,9 +1,9 @@
 # FE-023: Update log panel (presentational, all states)
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-023` with FE-018, FE-019, FE-020 and FE-023; approved by the user, PR open)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-020
 - **Can run in parallel with:** FE-021, FE-022, FE-025, FE-027
 - **Review size:** ~100 lines, 2 files plus tests, ~12 min
@@ -87,3 +87,10 @@ Things that should *not* be in the diff: API calls, a store.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `updateLog.ts`: local `UpdateLogItem` type (until FE-021), pure `statusTone` and `formatReceivedAt` (Mexico City via `Intl.DateTimeFormat`); tests included.
+- `UpdateLogPanel.tsx`: props only, `now` injected. Table on desktop, stacked rows below 768 px; status select, route input, Refresh; controls disabled while loading.
+- Added an extra empty state when filters are active ('Nothing matches'), besides 'No updates yet'.
+- `fixtures.ts` + `PlaygroundScreen.tsx` show sample rows with local filtering; change `FIXTURE_STATE` to see loading/error. FE-024 replaces both.
+- `RUNBOOK-telegram-playground.md`: setup and a tutorial for what exists today.
+- Checked loaded, empty, loading and error in Chrome, light and dark, desktop and 375 px.
