@@ -1,9 +1,9 @@
 # BE-021: The bot replies: /help works end to end
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3, §8
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** BE-015, BE-019, BE-020
 - **Can run in parallel with:** none
 - **Public endpoint?** yes (same route as BE-008)
@@ -94,3 +94,7 @@ Things that should *not* be in the diff: queueing, policy, buttons.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- Fixed BE-015's `_unknown_command`: it now passes `{"command": update.command}`, otherwise `render` raised `MissingTemplateData`.
+- The webhook catches any exception from the reply, not only `SendFailed`: a render bug or a validation error must not turn into a non-200. The log line is `telegram.reply_failed <TypeName>` only (a validation error's message would carry the text).
+- `telegram_webhook_client` now overrides `get_sender` with the recording fake (`recorded_sends` fixture) and empties `TELEGRAM_BOT_TOKEN`, so no webhook test can reach Telegram even with a real token in `api/.env`.

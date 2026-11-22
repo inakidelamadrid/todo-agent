@@ -35,6 +35,9 @@ from fastapi.testclient import TestClient
 from app.main import create_app
 from app.security import require_principal
 from app.settings import Settings, get_settings
+from app.telegram.aiogram_sender import get_sender
+from app.telegram.sender import TelegramSender
+from tests.fakes import recording_sender
 
 KEY_ONE = "test-key-1"
 KEY_TWO = "test-key-2"
@@ -89,23 +92,34 @@ def clean_telegram_updates(migrated_test_db: str) -> None:
 
 
 @pytest.fixture()
+def recorded_sends() -> "tuple[TelegramSender, list[tuple[str, tuple]]]":
+    """The recording sender the webhook client uses; request it to read calls."""
+    return recording_sender()
+
+
+@pytest.fixture()
 def telegram_webhook_client(
     monkeypatch: pytest.MonkeyPatch,
     migrated_test_db: str,
     clean_telegram_updates: None,
+    recorded_sends: "tuple[TelegramSender, list[tuple[str, tuple]]]",
 ) -> Iterator[TestClient]:
     """Real app on the per-worker test DB, webhook secret + owner allowlist set.
 
     Depends on ``clean_telegram_updates`` so every webhook test starts from
-    an empty idempotency table.
+    an empty idempotency table. Replies go to ``recorded_sends``, never to
+    Telegram (BE-021), and no bot is created from a local api/.env token.
     """
     monkeypatch.setenv("API_KEYS", KEY_ONE)
     monkeypatch.setenv("POSTGRES_DB", migrated_test_db)
     monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", TELEGRAM_TEST_SECRET)
     monkeypatch.setenv("TELEGRAM_ALLOWED_USER_ID", str(TELEGRAM_TEST_OWNER_ID))
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "")
     get_settings.cache_clear()
+    app = create_app()
+    app.dependency_overrides[get_sender] = lambda: recorded_sends[0]
     try:
-        with TestClient(create_app()) as test_client:  # lifespan: engine up/down
+        with TestClient(app) as test_client:  # lifespan: engine up/down
             yield test_client
     finally:
         get_settings.cache_clear()

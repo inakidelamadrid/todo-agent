@@ -6,7 +6,8 @@ import pytest
 
 from app.telegram import templates
 from app.telegram.handlers import HANDLERS, not_available
-from app.telegram.routing import COMMANDS
+from app.telegram.inbound import InboundUpdate, UpdateKind
+from app.telegram.routing import COMMANDS, Route
 from app.telegram.templates import (
     TEMPLATES,
     MissingTemplateData,
@@ -66,8 +67,10 @@ def test_overlong_result_raises(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_every_handler_template_exists() -> None:
+    update = InboundUpdate(update_id=1, kind=UpdateKind.COMMAND, command="x")
+    route = Route(kind="command", target="x")
     names = {
-        asyncio.run(handler(None, None, None)).template  # type: ignore[arg-type]
+        asyncio.run(handler(update, route, None)).template  # type: ignore[arg-type]
         for handler in (*HANDLERS.values(), not_available)
     }
     assert names <= TEMPLATES.keys()
