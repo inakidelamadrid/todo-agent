@@ -202,7 +202,7 @@ A screen for understanding and testing the bot. It explains decisions the code a
 
 ## 9. Ticket breakdown
 
-49 tickets (43 backend, 6 frontend), in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-031 to BE-033 need the F-6 tickets (BE-047 to BE-052), listed in `Epics/README.md`.
+76 tickets (58 backend, 18 frontend), in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-031 to BE-033 need the F-6 tickets (BE-047 to BE-052), listed in `Epics/README.md`.
 
 **Start anywhere here (no dependencies):** BE-004, BE-005, BE-010, BE-018, BE-020, BE-024, BE-036, FE-002, FE-006.
 
@@ -270,13 +270,48 @@ A screen for understanding and testing the bot. It explains decisions the code a
 - [FE-006](../tickets/frontend/FE-006-telegram-status-card.md): Telegram status card (presentational, all states). Depends on: none
 - [FE-007](../tickets/frontend/FE-007-wire-telegram-status.md): Wire the Telegram status card into the settings sheet. Depends on: FE-005, FE-006, BE-043
 
-### Debugger playground (5.7): not unfolded yet
+### Debugger playground (5.7)
 
-Added after the first unfold. Open questions 8 to 12 are answered; ready for `/unfold-epic`. **First slice:** update log, route explainer, template preview, send test message. The callback decoder, policy explainer, session peek and health come after. Rough shape:
+27 tickets (15 backend, 12 frontend) for the first slice: update log, route explainer with the confirmed *Run for real*, template preview, send test message.
 
-- **Backend:** admin settings and `require_admin`; `roles` on `GET /me`; the playground switch; update log endpoint; route explanation as a pure function plus its endpoint; template preview; callback decoder; policy explainer; send test message (with rate limit); session peek and clear; action record table.
-- **Frontend:** `roles` in the session model and the hidden entry point; playground shell with its off and not-admin states; one presentational panel per tool, then wiring for each.
-- **Depends on:** BE-064 (`require_user`, `GET /me`); BE-011 (update log); BE-013 to BE-016 (router and pending mode); BE-020, BE-022, BE-023 (templates, signed callbacks); BE-024, BE-025 (policy); BE-030 (send); BE-017 (session); BE-043 (health).
+**Start here (dependencies already merged):** BE-065 and BE-069, then BE-066 to BE-068. FE-018 follows BE-067, then FE-019 and FE-020. Everything else waits on the Telegram tickets named in its `Depends on` line.
+
+**Human step:** set `ADMIN_USER_IDS` (your Clerk user ID) and `TELEGRAM_PLAYGROUND_ENABLED=true` in `api/.env` for development.
+
+Backend:
+
+- [BE-065](../tickets/backend/BE-065-admin-settings.md): Admin settings: `ADMIN_USER_IDS` and the pure `is_admin`. Depends on: none
+- [BE-066](../tickets/backend/BE-066-require-admin-dependency.md): `require_admin`: the shared admin-only dependency. Depends on: BE-065
+- [BE-067](../tickets/backend/BE-067-me-roles.md): `GET /me` returns `roles`. Depends on: BE-065
+- [BE-068](../tickets/backend/BE-068-playground-switch-and-router.md): Playground switch, `APP_ENV`, and the guarded `/admin/telegram` router. Depends on: BE-066
+- [BE-069](../tickets/backend/BE-069-playground-actions-table.md): `playground_actions` table and its two repository functions. Depends on: none
+- [BE-070](../tickets/backend/BE-070-list-recent-updates-repository.md): Repository: list recent Telegram updates with filters. Depends on: BE-011
+- [BE-071](../tickets/backend/BE-071-playground-updates-endpoint.md): `GET /admin/telegram/updates`: the update log. Depends on: BE-068, BE-069, BE-070
+- [BE-072](../tickets/backend/BE-072-compose-update.md): Compose an update: a small form becomes an `InboundUpdate`. Depends on: BE-006
+- [BE-073](../tickets/backend/BE-073-explain-route.md): `explain_route`: the router's decision, step by step, as a pure function. Depends on: BE-009, BE-013
+- [BE-074](../tickets/backend/BE-074-playground-explain-endpoint.md): `POST /admin/telegram/explain`: dry-run route explanation. Depends on: BE-068, BE-069, BE-072, BE-073
+- [BE-075](../tickets/backend/BE-075-extract-process-update.md): Extract `process_update` from the webhook (no behaviour change). Depends on: BE-015
+- [BE-076](../tickets/backend/BE-076-playground-replay-endpoint.md): `POST /admin/telegram/replay`: run a composed update for real. Depends on: BE-074, BE-075
+- [BE-077](../tickets/backend/BE-077-template-catalog.md): Template catalog: names and required fields (pure). Depends on: BE-020
+- [BE-078](../tickets/backend/BE-078-playground-templates-endpoints.md): `GET /admin/telegram/templates` and `POST …/templates/preview`. Depends on: BE-068, BE-069, BE-077
+- [BE-079](../tickets/backend/BE-079-playground-test-message-endpoint.md): `POST /admin/telegram/test-message`: send a test to the owner's chat. Depends on: BE-030, BE-068, BE-069
+
+Frontend:
+
+- [FE-018](../tickets/frontend/FE-018-session-roles.md): Session roles: `/me` client, `isAdmin` and a small store. Depends on: BE-067
+- [FE-019](../tickets/frontend/FE-019-screen-switch-admin-entry.md): Screen switch from the URL hash, and an admin-only rail entry. Depends on: FE-018
+- [FE-020](../tickets/frontend/FE-020-playground-shell.md): Playground shell: tabs and the 'off' and 'not an admin' states. Depends on: FE-019
+- [FE-021](../tickets/frontend/FE-021-playground-client-read.md): Playground client, part 1: probe, updates, templates; connect the gate. Depends on: FE-020, BE-068, BE-071, BE-078
+- [FE-022](../tickets/frontend/FE-022-playground-client-actions.md): Playground client, part 2: explain, replay, test message. Depends on: FE-021, BE-074, BE-076, BE-079
+- [FE-023](../tickets/frontend/FE-023-update-log-panel.md): Update log panel (presentational, all states). Depends on: FE-020
+- [FE-024](../tickets/frontend/FE-024-wire-update-log.md): Wire the update log to the API. Depends on: FE-021, FE-023
+- [FE-025](../tickets/frontend/FE-025-route-explainer-panel.md): Route explainer panel: composer form and step list (presentational). Depends on: FE-020
+- [FE-026](../tickets/frontend/FE-026-wire-route-explainer-run-for-real.md): Wire the explainer, with the confirmed **Run for real**. Depends on: FE-022, FE-025
+- [FE-027](../tickets/frontend/FE-027-template-preview-panel.md): Template preview panel (presentational, all states). Depends on: FE-020
+- [FE-028](../tickets/frontend/FE-028-wire-template-preview.md): Wire the template preview to the API. Depends on: FE-021, FE-027
+- [FE-029](../tickets/frontend/FE-029-send-test-message.md): Send test message: panel, confirmation and wiring. Depends on: FE-021, FE-022, FE-028
+
+Not ticketed yet (later tools): callback decoder (with composing callback taps and button preview), policy explainer, session peek, health, a screen for the action record, an admins table.
 
 ### Not ticketed here
 
