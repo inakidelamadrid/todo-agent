@@ -1,9 +1,9 @@
 # FE-021: Playground client, part 1: probe, updates, templates; connect the gate
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-021` with FE-021, FE-022, FE-027, FE-028 and FE-029; synced with main after BE-078 and BE-079 merged; not committed, awaiting user approval)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-020, BE-068, BE-071, BE-078
 - **Can run in parallel with:** FE-023, FE-025, FE-027
 - **Review size:** ~80 lines, 4 files plus tests, ~12 min
@@ -92,3 +92,9 @@ Things that should *not* be in the diff: Panels, stores, the write endpoints.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `types.ts` now holds the wire types; `updateLog.ts` re-exports `UpdateLogItem`/`UpdateStatus` so FE-023 code is unchanged.
+- `request.ts`: `forwardUnauthorizedOnly(handle)` + `createPlaygroundRequest()`; a playground 403 never reaches the app-wide forbidden handler.
+- `api.ts`: `createPlaygroundApi(request)`; `probe()` never throws (network error → status 0); pure `updatesQuery` sends only set filters.
+- `PlaygroundScreen.tsx`: `usePlaygroundGate` probes on mount; Try again re-probes. The Updates tab still shows fixtures (FE-024).
+- BE-078 is merged and its routes and shapes match the client. `listUpdates` still follows BE-071's ticket (not merged); FE-024 wires it.

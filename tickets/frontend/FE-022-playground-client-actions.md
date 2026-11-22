@@ -1,9 +1,9 @@
 # FE-022: Playground client, part 2: send test message
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-021` with FE-021, FE-022, FE-027, FE-028 and FE-029; synced with main after BE-078 and BE-079 merged; not committed, awaiting user approval)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-021, BE-079
 - **Can run in parallel with:** FE-023 to FE-028
 - **Review size:** ~35 lines, 2 files plus tests, ~6 min
@@ -77,3 +77,6 @@ Things that should *not* be in the diff: UI, stores, explain or replay (FE-030).
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `sendTestMessage(template, data)` posts only `{ template, data }` and returns `{ messageId }`; no function takes a recipient.
+- First built against the old queued contract; re-done after BE-079 was re-scoped. Explain/replay code from that first pass was taken out of this branch (FE-030 can reuse it).

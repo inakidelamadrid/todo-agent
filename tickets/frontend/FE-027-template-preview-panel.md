@@ -1,9 +1,9 @@
 # FE-027: Template preview panel (presentational, all states)
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-021` with FE-021, FE-022, FE-027, FE-028 and FE-029; synced with main after BE-078 and BE-079 merged; not committed, awaiting user approval)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-020
 - **Can run in parallel with:** FE-021 to FE-026
 - **Review size:** ~100 lines, 3 files plus tests, ~12 min
@@ -91,3 +91,8 @@ Things that should *not* be in the diff: API calls, sending, buttons preview.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `telegramHtml.ts`: `parseTelegramHtml` is a regex over `<b>|<i>|<code>` with no inner `<`, so nested or unknown tags stay literal text. No `dangerouslySetInnerHTML` anywhere.
+- `TemplatePreviewPanel.tsx` exports `TemplatePicker` (select + one input per field), reused by FE-029, and `ChatBubble`.
+- `templateForm.ts`: pure `findTemplate`, `fieldsComplete`, `fieldErrorsFrom` (a 422 naming a field, in `loc` or in the message, maps to it).
+- Checked in Chrome with a fake API: empty, loading, result (bold/italic/code/newlines), field error, light and dark, 340 px.
