@@ -1,6 +1,6 @@
 # BE-009: Allowlist: only the owner's updates are processed
 
-- **Status:** todo
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.2, §8
 - **Assigned agent / harness / model:**

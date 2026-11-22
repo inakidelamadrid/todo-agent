@@ -1,6 +1,6 @@
 # BE-015: Handler registry and dispatch from the webhook
 
-- **Status:** todo
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §2, §5.2
 - **Assigned agent / harness / model:**

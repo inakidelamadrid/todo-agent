@@ -1,6 +1,6 @@
 # BE-010: TelegramUpdate table and migration
 
-- **Status:** todo
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §6
 - **Assigned agent / harness / model:**

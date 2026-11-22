@@ -1,6 +1,6 @@
 # BE-018: Sender port and a recording fake
 
-- **Status:** in review
+- **Status:** done
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.3
 - **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5

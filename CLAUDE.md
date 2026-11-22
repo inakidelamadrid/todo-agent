@@ -63,8 +63,8 @@ One model, shared by frontend and backend. Change both sides together.
 ## Backend: secure first
 
 - Security comes first in every backend decision.
-- **Every endpoint requires credentials by default** (an owner session token or an API key, see Authentication). An endpoint is public only when I explicitly say to make it public. Today `/health` and `/ping` are public.
-- Enforce credentials via the shared FastAPI dependency (`require_principal` in `api/app/security.py`), not ad-hoc checks per route. Routes that must not be called by a machine use `require_user`.
+- **Every endpoint requires credentials by default** (an owner session token or an API key, see Authentication). An endpoint is public only when I explicitly say to make it public. Today `/health` and `/ping` are open, and `POST /integrations/telegram/webhook` is public behind `require_telegram_secret` (`X-Telegram-Bot-Api-Secret-Token`, PR #37).
+- Enforce credentials via the shared FastAPI dependencies in `api/app/security.py`, not ad-hoc checks per route: `require_principal` (person or machine), `require_user` (person only), and `require_admin` (admin user in `ADMIN_USER_IDS`, PR #33).
 - Never hardcode keys; load them from environment variables.
 
 ## Authentication (EPIC-009)
@@ -72,9 +72,15 @@ One model, shared by frontend and backend. Change both sides together.
 - **People** sign in with Clerk (Google, sign-up restricted). The web app sends `Authorization: Bearer <session token>` on every call; `web/src/lib/sessionToken.ts` supplies the token and `web/src/features/auth/` holds the gate, sign-in screen and 401/403 handling.
 - **Machines** (n8n, scripts) send `X-API-Key`. The browser never holds an API key; the Vite dev proxy only forwards `/api/*`.
 - **API:** one dependency, `require_principal`, returns `User` or `Machine` (`api/app/principal.py`). A bearer token wins over an API key sent with it. Token checks are pure (`check_claims`); the RS256 signature check is a port with one adapter (`api/app/session_token.py`, PyJWT). Only users in `CLERK_ALLOWED_USER_IDS` pass: non-owner → `403`, anything else invalid → `401`.
-- `GET /me` returns `{ userId, kind: "user" }` and requires a person.
-- **Config** (all required, the app refuses to start without them): `CLERK_JWT_PUBLIC_KEY`, `CLERK_AUTHORIZED_PARTIES`, `CLERK_ALLOWED_USER_IDS` in `api/.env`; `VITE_CLERK_PUBLISHABLE_KEY` in `web/.env.local`. Setup steps: `RUNBOOK-clerk-setup.md`.
+- `GET /me` returns `{ userId, kind: "user", roles }` (`roles` is `["admin"]` when the user is in `ADMIN_USER_IDS`, else `[]`; PR #33) and requires a person (`require_user`).
+- **Config** (all required, the app refuses to start without them): `CLERK_JWT_PUBLIC_KEY`, `CLERK_AUTHORIZED_PARTIES`, `CLERK_ALLOWED_USER_IDS` in `api/.env`; `VITE_CLERK_PUBLISHABLE_KEY` in `web/.env.local`. Optional: `ADMIN_USER_IDS` in `api/.env` (empty means nobody is an admin, PR #33). Setup steps: `RUNBOOK-clerk-setup.md`.
 - Tests sign tokens with a key pair generated in the test, never a real Clerk key.
+
+## Telegram & Playground (EPIC-008)
+
+- **Inbound webhook** (`POST /integrations/telegram/webhook`, `include_in_schema=False`, PRs #37, #42): guarded by `require_telegram_secret` (`api/app/telegram/security.py`). Fixed pipeline order: secret → `parse_inbound` (`inbound.py`, the only module importing `aiogram.types.Update`) → `is_allowed` (owner private chat only, `TELEGRAM_ALLOWED_USER_ID`) → atomic `claim_update` (`telegram_updates` table, metadata only — no message text, caption or callback data stored) → pure `route()` (`routing.py`) → `handlers.resolve()` (`handlers.py`) → `service.reply()` (`service.py`) → `mark_update`. Always returns `200 {"ok": true}` after secret verification.
+- **Outbound & templates** (PRs #38, #40, #41, #42): `TelegramSender` port (`api/app/telegram/sender.py`) with one adapter (`aiogram_sender.py`, the only module importing `aiogram.Bot`, opened in app lifespan; falls back to `unconfigured_sender` when `TELEGRAM_BOT_TOKEN` is unset). All outbound message text is rendered through `templates.render` (`templates.py`) with central `html.escape` and a 4096-character guard.
+- **Admin debugger playground** (`/admin/telegram/*`, `include_in_schema=False`, PRs #33, #34, #42, #43): behind `require_admin` and `require_playground` (`404` unless `TELEGRAM_PLAYGROUND_ENABLED=true` and `APP_ENV != "production"`; startup refuses `true` in production). Merged endpoints: `GET /playground`, `GET /templates`, `POST /templates/preview`, `POST /test-message` (immediate send via `service.reply` to `TELEGRAM_ALLOWED_USER_ID` only, capped at 10 `ok` sends/hour). Every attempt is audited in `playground_actions` (metadata only). Frontend (`web/src/features/playground/`) renders previews via pure `parseTelegramHtml` (no `dangerouslySetInnerHTML`) and keeps playground `403`s scoped to the playground screen. Setup: `RUNBOOK-telegram-playground.md`.
 
 ## Agents
 
