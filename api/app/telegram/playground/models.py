@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, Index, String, func
+from sqlalchemy import CheckConstraint, DateTime, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -27,7 +27,9 @@ class PlaygroundAction(Base):
     admin_user_id: Mapped[str] = mapped_column(String(64))
     tool: Mapped[str] = mapped_column(String(20))
     outcome: Mapped[str] = mapped_column(String(10))
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     __table_args__ = (
         CheckConstraint(f"tool IN {TOOLS}", name="ck_playground_actions_tool"),
