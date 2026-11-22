@@ -3,7 +3,7 @@
 - **Status:** in-tickets
 - **Type:** infrastructure (formalizes foundation **F-7 Telegram channel**)
 - **Owner:** Ignacio
-- **Depends on:** F-2 Scoped API keys, F-6 Scheduler & notifications (Redis queue)
+- **Depends on:** F-2 Scoped API keys, F-6 Scheduler & notifications (Redis queue); EPIC-009 User login for the debugger playground (5.7)
 - **Used by:**
   - EPIC-002: expenses;
   - EPIC-003: brain dump, `/now`, focus check-ins;
@@ -20,6 +20,8 @@ One private Telegram bot as the app's **conversational front door** and its **ma
 2. **Outbound:** a single `TelegramService.send(...)` used by every feature for messages with inline buttons, grouped reminders, edits ("✓ done") and digests. It respects quiet hours, pause and rate limits.
 3. **AI parsing in n8n:** n8n keeps the AI-heavy flows (transcription, OCR, parsing). The **API stays the source of truth** for rules, idempotency and data.
 
+4. **Debugger playground (admin only):** a screen in the web app where an admin can watch what the bot received, replay an update through the router without side effects, preview templates and buttons, and send a test message to their own chat. See 5.7.
+
 ## 2. Goals
 
 - Only I can use the bot. Everything else is ignored silently.
@@ -27,6 +29,7 @@ One private Telegram bot as the app's **conversational front door** and its **ma
 - One routing table decides where each message goes, and it's easy to extend when a new epic adds a command.
 - Every outbound message goes through one service, with caps, quiet hours and pause enforced centrally.
 - The setup can move from n8n to the API (or back) without changing feature code.
+- When the bot does something unexpected, an admin can find out *why* from the web app, without reading server logs or poking the production bot by hand.
 
 ## 3. Non-goals
 
@@ -120,6 +123,44 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 - Structured logs: update type, route chosen, latency, outcome. Message text is never logged.
 - Health indicators: webhook status, queue depth, last successful send, error rate. Shown in a small admin or status page, and alerted on failure.
 
+### 5.7 Debugger playground (admin only)
+
+A screen for understanding and testing the bot. It explains decisions the code already makes; it adds no second way to do them. Every tool calls the same pure functions the webhook and the sender use.
+
+**Who can open it**
+
+- **Admins only.** An admin is a signed-in person (EPIC-009 `User`) whose Clerk user ID is in `ADMIN_USER_IDS` (comma-separated, in `api/.env`). More admins are expected later, so it is a list from the start. A machine with an API key is never an admin. An empty list means nobody is an admin.
+- **First admin:** the owner's account (Ignacio's Google sign-in). The identifying value is set in the environment by the human; it is not written in the repository.
+- New shared dependency `require_admin`, built on `require_user`: no credentials or a bad token → `401`; a signed-in non-admin or a machine → `403`. Every playground endpoint is mounted behind it, under `/admin/telegram/…`.
+- `GET /me` gains `"roles": ["admin"]` (or `[]`), so the web app can hide the entry point. Hiding is a courtesy; the API check is the one that counts.
+- The playground is off unless `TELEGRAM_PLAYGROUND_ENABLED=true`. When off, its endpoints answer `404`.
+- **Development only.** It is never available in production: the app refuses to start if the switch is on in a production environment.
+
+**Tools**
+
+| Tool | What it shows or does | Side effects |
+|---|---|---|
+| **Update log** | The last N `TelegramUpdate` rows: type, route chosen, status, latency, received at. Filter by status and route | None (read only) |
+| **Route explainer** | Take a recorded fixture, or compose an update (text, command, callback, photo with caption), and see each router step in order: secret check, allowlist, idempotency, callback → command → pending mode → keyword → default, with the rule that matched | Dry run by default: nothing stored, no handler runs. **Run for real** (opt-in, confirmed) executes the handler |
+| **Template preview** | Pick a template and sample data: the rendered HTML, the escaping applied, the button layout, and each button's callback data with its byte size (limit 64) | None |
+| **Callback decoder** | Paste callback data: valid, tampered or expired, and the action it decodes to | None |
+| **Policy explainer** | For a category and a time: would a message be sent now, deferred (quiet hours, pause), capped or grouped, and why | None |
+| **Send test message** | Send a chosen template to the admin's own chat through `TelegramService`, marked as a test | One real message, to the allowlisted chat only |
+| **Session peek** | The current pending mode and its remaining TTL, with a **Clear** button | Clear deletes that one session key |
+| **Health** | Webhook status, queue depth, last successful send, error rate (reuses `GET /integrations/telegram/status`, BE-043) | None |
+
+**Rules**
+
+- **Dry run by default.** Only *Send test message*, *Clear session* and the route explainer's *Run for real* change anything, and each asks for confirmation.
+- **Run for real** sends the update through the same path as the webhook after the secret check (allowlist, idempotency, router, handler), as if it came from the admin's own chat. It uses a playground-only `update_id` range so it can never collide with a real Telegram update, and the resulting records are marked as playground-made.
+- **Never a way around the guards.** The route explainer does not accept updates on behalf of other users. A composed update is always processed as if it came from the admin's own chat.
+- **Test messages go only to the allowlisted chat**, through the normal sender, with a low rate limit (for example 10 per hour).
+- **No message content from real traffic.** The update log shows metadata only, as the logs already do (5.6). Composed text exists only in the request and is not stored or logged.
+- **No secrets on screen:** never the bot token, the webhook secret, the HMAC key or an API key. Signatures are shown as valid or invalid, not as values.
+- **Every playground action is recorded** (who, which tool, when, outcome), without content.
+
+**States to polish (web):** loading, empty (no updates yet), error, the "playground is off" state, the not-an-admin state, the confirmation dialogs, phone width, light and dark, keyboard use. It follows `DESIGN.md`; it is an internal tool but not an unstyled one.
+
 ## 6. Data model (draft)
 
 | Entity | Key fields |
@@ -128,6 +169,9 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 | `TelegramSession` (Redis, TTL) | chatId, pendingMode (`vault`/`expense`/…), context, expiresAt |
 | `TelegramOutbound` | id, chatId, template, category, status (`queued`/`sent`/`deferred`/`failed`), telegramMessageId?, idempotencyKey, attempts, scheduledFor? |
 | `NotificationPolicy` | quietHours, pausedUntil?, perCategoryCaps, groupingWindowMinutes |
+| `Admin` (code only, from env for now) | userId (Clerk `sub`) |
+| `PlaygroundAction` | id, adminUserId, tool, outcome, createdAt. No content |
+| `RouteExplanation` (response only, not stored) | steps[] (name, verdict, detail), finalRoute |
 
 ## 7. Security and privacy
 
@@ -138,6 +182,7 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
   - amounts and personal details only where enabled;
   - **never** document numbers or child support evidence.
 - Media is processed server-side and retained only per feature policy. No message text in logs.
+- **Playground (5.7):** admin-only through one shared dependency (`require_admin`); machines are never admins; off by default and never in production; dry run by default; test messages only to the allowlisted chat; no real message content, no secrets on screen; every action recorded. Each playground endpoint has tests for: no credentials (`401`), a signed-in non-admin (`403`), a valid API key (`403`), and the playground switched off (`404`).
 
 ## 8. Epic acceptance criteria
 
@@ -148,10 +193,16 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 - [ ] Tampered or expired callback buttons are rejected.
 - [ ] Dev and prod bots are separate; `make telegram-webhook` and `make telegram-info` work locally through a tunnel.
 - [ ] AI work runs async, so the user sees "Working on it…" immediately, then the result.
+- [ ] Playground: only an admin can open it or call its endpoints; a non-admin user and a machine get `403`; with the switch off the endpoints return `404`.
+- [ ] Playground: the route explainer gives the same route as the real router for every recorded fixture, and stores nothing in a dry run.
+- [ ] Playground: *Run for real* executes the handler once, only for the admin's own chat, and its records are marked as playground-made.
+- [ ] Playground: the app refuses to start with the playground switched on in production.
+- [ ] Playground: a test message reaches only the admin's own chat, and the action appears in the playground action record.
+- [ ] Playground: no bot token, secret, key or real message text is visible anywhere on the screen or in its API responses.
 
 ## 9. Ticket breakdown
 
-49 tickets (43 backend, 6 frontend), in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-031 to BE-033 need the F-6 tickets (BE-047 to BE-052), listed in `Epics/README.md`.
+76 tickets (58 backend, 18 frontend), in build order within each group. Each is one reviewable change. Blocked tickets wait on the dependency named in their Status line. BE-031 to BE-033 need the F-6 tickets (BE-047 to BE-052), listed in `Epics/README.md`.
 
 **Start anywhere here (no dependencies):** BE-004, BE-005, BE-010, BE-018, BE-020, BE-024, BE-036, FE-002, FE-006.
 
@@ -219,6 +270,49 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 - [FE-006](../tickets/frontend/FE-006-telegram-status-card.md): Telegram status card (presentational, all states). Depends on: none
 - [FE-007](../tickets/frontend/FE-007-wire-telegram-status.md): Wire the Telegram status card into the settings sheet. Depends on: FE-005, FE-006, BE-043
 
+### Debugger playground (5.7)
+
+27 tickets (15 backend, 12 frontend) for the first slice: update log, route explainer with the confirmed *Run for real*, template preview, send test message.
+
+**Start here (dependencies already merged):** BE-065 and BE-069, then BE-066 to BE-068. FE-018 follows BE-067, then FE-019 and FE-020. Everything else waits on the Telegram tickets named in its `Depends on` line.
+
+**Human step:** set `ADMIN_USER_IDS` (your Clerk user ID) and `TELEGRAM_PLAYGROUND_ENABLED=true` in `api/.env` for development.
+
+Backend:
+
+- [BE-065](../tickets/backend/BE-065-admin-settings.md): Admin settings: `ADMIN_USER_IDS` and the pure `is_admin`. Depends on: none
+- [BE-066](../tickets/backend/BE-066-require-admin-dependency.md): `require_admin`: the shared admin-only dependency. Depends on: BE-065
+- [BE-067](../tickets/backend/BE-067-me-roles.md): `GET /me` returns `roles`. Depends on: BE-065
+- [BE-068](../tickets/backend/BE-068-playground-switch-and-router.md): Playground switch, `APP_ENV`, and the guarded `/admin/telegram` router. Depends on: BE-066
+- [BE-069](../tickets/backend/BE-069-playground-actions-table.md): `playground_actions` table and its two repository functions. Depends on: none
+- [BE-070](../tickets/backend/BE-070-list-recent-updates-repository.md): Repository: list recent Telegram updates with filters. Depends on: BE-011
+- [BE-071](../tickets/backend/BE-071-playground-updates-endpoint.md): `GET /admin/telegram/updates`: the update log. Depends on: BE-068, BE-069, BE-070
+- [BE-072](../tickets/backend/BE-072-compose-update.md): Compose an update: a small form becomes an `InboundUpdate`. Depends on: BE-006
+- [BE-073](../tickets/backend/BE-073-explain-route.md): `explain_route`: the router's decision, step by step, as a pure function. Depends on: BE-009, BE-013
+- [BE-074](../tickets/backend/BE-074-playground-explain-endpoint.md): `POST /admin/telegram/explain`: dry-run route explanation. Depends on: BE-068, BE-069, BE-072, BE-073
+- [BE-075](../tickets/backend/BE-075-extract-process-update.md): Extract `process_update` from the webhook (no behaviour change). Depends on: BE-015
+- [BE-076](../tickets/backend/BE-076-playground-replay-endpoint.md): `POST /admin/telegram/replay`: run a composed update for real. Depends on: BE-074, BE-075
+- [BE-077](../tickets/backend/BE-077-template-catalog.md): Template catalog: names and required fields (pure). Depends on: BE-020
+- [BE-078](../tickets/backend/BE-078-playground-templates-endpoints.md): `GET /admin/telegram/templates` and `POST …/templates/preview`. Depends on: BE-068, BE-069, BE-077
+- [BE-079](../tickets/backend/BE-079-playground-test-message-endpoint.md): `POST /admin/telegram/test-message`: send a test to the owner's chat. Depends on: BE-030, BE-068, BE-069
+
+Frontend:
+
+- [FE-018](../tickets/frontend/FE-018-session-roles.md): Session roles: `/me` client, `isAdmin` and a small store. Depends on: BE-067
+- [FE-019](../tickets/frontend/FE-019-screen-switch-admin-entry.md): Screen switch from the URL hash, and an admin-only rail entry. Depends on: FE-018
+- [FE-020](../tickets/frontend/FE-020-playground-shell.md): Playground shell: tabs and the 'off' and 'not an admin' states. Depends on: FE-019
+- [FE-021](../tickets/frontend/FE-021-playground-client-read.md): Playground client, part 1: probe, updates, templates; connect the gate. Depends on: FE-020, BE-068, BE-071, BE-078
+- [FE-022](../tickets/frontend/FE-022-playground-client-actions.md): Playground client, part 2: explain, replay, test message. Depends on: FE-021, BE-074, BE-076, BE-079
+- [FE-023](../tickets/frontend/FE-023-update-log-panel.md): Update log panel (presentational, all states). Depends on: FE-020
+- [FE-024](../tickets/frontend/FE-024-wire-update-log.md): Wire the update log to the API. Depends on: FE-021, FE-023
+- [FE-025](../tickets/frontend/FE-025-route-explainer-panel.md): Route explainer panel: composer form and step list (presentational). Depends on: FE-020
+- [FE-026](../tickets/frontend/FE-026-wire-route-explainer-run-for-real.md): Wire the explainer, with the confirmed **Run for real**. Depends on: FE-022, FE-025
+- [FE-027](../tickets/frontend/FE-027-template-preview-panel.md): Template preview panel (presentational, all states). Depends on: FE-020
+- [FE-028](../tickets/frontend/FE-028-wire-template-preview.md): Wire the template preview to the API. Depends on: FE-021, FE-027
+- [FE-029](../tickets/frontend/FE-029-send-test-message.md): Send test message: panel, confirmation and wiring. Depends on: FE-021, FE-022, FE-028
+
+Not ticketed yet (later tools): callback decoder (with composing callback taps and button preview), policy explainer, session peek, health, a screen for the action record, an admins table.
+
 ### Not ticketed here
 
 - Feature commands (`/now`, `/inbox`, `/radar`, `/vault`, …): each owning epic registers its handler in `HANDLERS` (BE-015). Until then they answer "That isn't available yet."
@@ -246,3 +340,15 @@ Only one webhook can be registered per bot. Use **separate bots for dev and prod
 7. Keep voice notes and photos after parsing, or discard them by default?
    - Answer: Ask whether to keep (always)
    - (assumed) An unanswered prompt discards after 24 hours; nothing is stored before a Keep (BE-045).
+8. Playground: how is an admin identified? By Clerk user ID in an environment variable (`ADMIN_USER_IDS`; recommended, matches `CLERK_ALLOWED_USER_IDS`, needs nothing new from Clerk), or by email (needs the email added to Clerk's session token as a custom claim, and a verified-email check)?
+   - Answer: By Clerk user ID, in `ADMIN_USER_IDS` in `api/.env`.
+9. Playground: will there be more admins than the owner? If yes, is an environment list enough, or do you want an admins table with a screen to add and remove them?
+   - Answer: Yes, more admins are expected.
+   - (assumed) The environment list is enough for now; an admins table with a screen is a later decision.
+10. Playground: available in production, or development only? (The switch `TELEGRAM_PLAYGROUND_ENABLED` covers both; this decides its production default.)
+   - Answer: No. Development only.
+   - (assumed) Enforced by refusing to start when the switch is on in production; how the app knows it is in production (for example an `APP_ENV` setting) is decided when unfolding.
+11. Playground: may the route explainer ever *execute* the handler (a real end-to-end replay), or stay dry run only? Recommended: dry run only; real tests go through the dev bot.
+   - Answer: Yes, as an explicit, confirmed *Run for real* mode. Dry run stays the default.
+12. Playground: which tools first? Recommended first slice: update log, route explainer, template preview. Then send test message, then the rest.
+   - Answer: Update log, route explainer, template preview, send test message.
