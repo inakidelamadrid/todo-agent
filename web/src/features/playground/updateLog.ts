@@ -1,14 +1,6 @@
-export type UpdateStatus = 'received' | 'processed' | 'failed'
+import type { UpdateStatus } from './types'
 
-/** Declared here until FE-021 (the playground client) brings the shared types. Metadata only, never message text. */
-export interface UpdateLogItem {
-  readonly updateId: number
-  readonly kind: string
-  readonly route: string
-  readonly status: UpdateStatus
-  readonly receivedAt: string
-  readonly playground: boolean
-}
+export type { UpdateLogItem, UpdateStatus } from './types'
 
 export interface UpdateLogFilters {
   readonly status: UpdateStatus | 'all'

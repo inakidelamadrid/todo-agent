@@ -1,9 +1,9 @@
 # FE-028: Wire the template preview to the API
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-021` with FE-021, FE-022, FE-027, FE-028 and FE-029; synced with main after BE-078 and BE-079 merged; not committed, awaiting user approval)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-021, FE-027
 - **Can run in parallel with:** FE-024, FE-026, FE-029
 - **Review size:** ~50 lines, 3 files plus tests, ~8 min
@@ -83,3 +83,8 @@ Things that should *not* be in the diff: Sending.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- `useTemplatesStore.ts`: `createTemplatesStore(api)` factory; loads once (`force` for Try again); `select` clears data and preview; `setField` clears that field's error.
+- `TemplatesTab.tsx` loads on mount; plugged into the shell via `PlaygroundScreen`.
+- FE-024's store didn't exist yet, so the shape follows `useBillsStore`.
+- Checked in Chrome with a fake API matching BE-078's examples (`unknown_command` + `<b>x</b>` shows literal text in code).

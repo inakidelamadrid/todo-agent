@@ -1,9 +1,9 @@
 # FE-029: Send test message: panel, confirmation and wiring
 
-- **Status:** todo
+- **Status:** review (implemented on branch `idelamadrid/FE-021` with FE-021, FE-022, FE-027, FE-028 and FE-029; synced with main after BE-078 and BE-079 merged; not committed, awaiting user approval)
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Claude Code / claude-opus-5-5
 - **Depends on:** FE-021, FE-022, FE-028
 - **Can run in parallel with:** FE-024
 - **Review size:** ~90 lines, 3 files plus tests, ~12 min
@@ -95,3 +95,8 @@ Things that should *not* be in the diff: Free-text messages, choosing a chat.
 ## Notes / log
 
 The agent adds progress notes, decisions and open questions here.
+
+- FE-026's dialog didn't exist yet: added `components/ui/alert-dialog.tsx` by hand on Base UI's AlertDialog (the shadcn CLI wanted to overwrite `button.tsx`; declined).
+- `sendResult.ts`: `describeSendResult` handles sent / 429 / 409 / 502 / other (re-done after BE-079 moved to immediate send; the queued/deferred version is gone).
+- `TestMessageTab.tsx`: shares template and fields with the Templates tab; send state stays local; **Cancel** has initial focus; a success toast as well as the result line.
+- Checked in Chrome with a fake API: dialog, Cancel sends nothing, result + toast, dark mode, 340 px. Real delivery: BE-079 is merged; check with the dev bot (runbook step 6).
