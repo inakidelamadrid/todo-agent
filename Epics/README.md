@@ -8,7 +8,7 @@ Epics are feature-level requirements, polished by the human before they become w
 |---|---|---|
 | [EPIC-001: Child support records](EPIC-001-child-support-records.md) | draft | Monthly child support payments with proof, the ex-spouse's digital acknowledgment, Google Drive filing and lawyer-ready summaries |
 | [EPIC-002: Expense tracking via Telegram](EPIC-002-expense-tracking-telegram.md) | draft | Log expenses by Telegram (text, photo, voice) through n8n into the API, with category/month/year heat maps |
-| [EPIC-003: Brain-dump inbox + "What now?"](EPIC-003-brain-dump-inbox-what-now.md) | draft | Capture anything (Telegram/web), AI splits it into tasks/notes/expenses for quick triage, and one-tap "What now?" picks a single task with its first step and a focus timer |
+| [EPIC-003: Brain-dump inbox + "What now?"](EPIC-003-brain-dump-inbox-what-now.md) | draft (Phase 1 in tickets) | Capture anything (Telegram/web), AI splits it into tasks/notes/expenses for quick triage, and one-tap "What now?" picks a single task with its first step and a focus timer |
 | [EPIC-004: Deadline radar](EPIC-004-deadline-radar.md) | draft | One view of everything dated in the next 14 days (bills, child support, tasks, documents, appointments), with one-tap actions and grouped, capped reminders |
 | [EPIC-005: Scheduled weekly reset](EPIC-005-weekly-reset.md) | draft | A guided 15-minute, 5-step weekly session (wins, inbox, look ahead, Big 3, money), invited by Telegram, ending in a 5-line summary |
 | [EPIC-006: Documents vault](EPIC-006-documents-vault.md) | draft | An index of important documents stored in Drive, with AI field extraction, masked numbers, renewal checklists and expiry on the radar |
