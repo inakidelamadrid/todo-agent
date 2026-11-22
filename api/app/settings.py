@@ -7,6 +7,7 @@ request time, and the app can never run with auth turned off.
 
 import re
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -43,6 +44,8 @@ class Settings(BaseSettings):
 
     api_keys: str = ""
     app_version: str = "0.1.0"
+    app_env: Literal["development", "production"] = "development"
+    telegram_playground_enabled: bool = False
 
     postgres_user: str = "todo_agent"
     postgres_password: SecretStr = SecretStr("")
@@ -108,6 +111,12 @@ def clerk_enabled(settings: Settings) -> bool:
         and parse_csv(settings.clerk_authorized_parties)
         and parse_csv(settings.clerk_allowed_user_ids)
     )
+
+
+def playground_allowed(settings: Settings) -> bool:
+    """True only when the playground is switched on and never in production
+    (BE-068; epic question 10: development only)."""
+    return settings.telegram_playground_enabled and settings.app_env != "production"
 
 
 @lru_cache
