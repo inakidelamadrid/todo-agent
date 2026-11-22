@@ -7,11 +7,13 @@ Telegram at all. There is no behaviour here yet.
 """
 
 import logging
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+from app.settings import Settings, get_settings
+from app.telegram.allowlist import is_allowed
 from app.telegram.inbound import parse_inbound
 from app.telegram.security import require_telegram_secret
 
@@ -34,11 +36,20 @@ telegram_webhook_router = APIRouter(
 
 
 @telegram_webhook_router.post("/webhook", include_in_schema=False)
-async def receive_update(payload: dict[str, Any]) -> WebhookAck:
+async def receive_update(
+    payload: dict[str, Any],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> WebhookAck:
     ack = WebhookAck()
     try:
-        parse_inbound(payload)
+        inbound = parse_inbound(payload)
     except ValidationError:
         # One warning line, no payload content: bodies are user data.
         logger.warning("telegram.unparseable")
+        return ack
+    if not is_allowed(inbound, settings.telegram_allowed_user_id):
+        # Counter line only: no user/chat ID, no text — a stranger must not
+        # be able to tell the bot exists, and logs carry no identifiers.
+        logger.info("telegram.ignored")
+        return ack
     return ack
