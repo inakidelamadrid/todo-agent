@@ -72,6 +72,17 @@ def test_probe_as_admin_returns_enabled_true(playground_client: TestClient) -> N
     assert response.json() == {"enabled": True}
 
 
+def test_openapi_schema_hides_the_playground(
+    playground_off_client: TestClient, playground_client: TestClient
+) -> None:
+    # The schema reveals nothing in any environment: no /admin/telegram path,
+    # whether the switch is off or on.
+    for app_client in (playground_off_client, playground_client):
+        response = app_client.get("/openapi.json")
+        assert response.status_code == 200
+        assert "/admin/telegram" not in response.text
+
+
 def test_app_refuses_to_start_with_playground_on_in_production(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

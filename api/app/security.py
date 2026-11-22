@@ -19,7 +19,7 @@ from fastapi.security import APIKeyHeader, HTTPBearer, HTTPAuthorizationCredenti
 
 from app.principal import ClerkRules, Machine, Principal, User, is_admin
 from app.session_token import DecodeToken, get_token_decoder, verify_session
-from app.settings import Settings, get_settings, parse_api_keys, parse_csv
+from app.settings import Settings, get_settings, parse_admin_user_ids, parse_api_keys, parse_csv
 
 API_KEY_HEADER_NAME = "X-API-Key"
 
@@ -163,7 +163,7 @@ def require_admin(
     """An admin person; 403 for any other caller (BE-066). Pure composition:
     missing or bad credentials never reach this function — require_principal
     already answered 401."""
-    if not is_admin(principal, parse_csv(settings.admin_user_ids)):
+    if not is_admin(principal, parse_admin_user_ids(settings.admin_user_ids)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=DETAIL_ADMIN_REQUIRED,

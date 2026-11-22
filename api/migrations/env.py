@@ -18,9 +18,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # Register ORM tables on Base.metadata.
 from app.bills import models as _models  # noqa: F401
-from app.telegram.playground import models as _playground_models  # noqa: F401
 from app.db import Base
 from app.settings import Settings
+from app.telegram.playground import models as _playground_models  # noqa: F401
 
 config = context.config
 

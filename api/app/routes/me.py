@@ -12,7 +12,7 @@ from pydantic.alias_generators import to_camel
 
 from app.principal import Principal, User, is_admin
 from app.security import require_principal
-from app.settings import Settings, get_settings, parse_csv
+from app.settings import Settings, get_settings, parse_admin_user_ids
 
 router = APIRouter(tags=["me"])
 
@@ -38,6 +38,8 @@ def me(
     # only check of 'a person is required' stays in that dependency.
     assert isinstance(principal, User)
     roles: tuple[Literal["admin"], ...] = (
-        ("admin",) if is_admin(principal, parse_csv(settings.admin_user_ids)) else ()
+        ("admin",)
+        if is_admin(principal, parse_admin_user_ids(settings.admin_user_ids))
+        else ()
     )
     return MeResponse(user_id=principal.user_id, roles=roles)

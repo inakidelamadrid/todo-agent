@@ -26,6 +26,17 @@ def parse_csv(raw: str) -> tuple[str, ...]:
     return tuple(part.strip() for part in raw.split(",") if part.strip())
 
 
+@lru_cache
+def parse_admin_user_ids(raw: str) -> tuple[str, ...]:
+    """``ADMIN_USER_IDS`` as a tuple, parsed once per process.
+
+    Request paths (``require_admin``, ``GET /me``) call this instead of
+    re-parsing per request. The cache key is the raw string; Settings is
+    frozen and process-wide, so the mapping never goes stale.
+    """
+    return parse_csv(raw)
+
+
 def normalize_pem(raw: str) -> str:
     """Turn escaped ``\\n`` into real newlines (PEM on one .env line) and trim."""
     return raw.strip().replace("\\n", "\n")

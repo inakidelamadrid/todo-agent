@@ -21,7 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.settings import Settings
-from app.telegram.playground.models import PlaygroundAction
+from app.telegram.playground.models import OUTCOMES, TOOLS, PlaygroundAction
 from app.telegram.playground.repository import count_actions_since, record_action
 
 T = TypeVar("T")
@@ -97,27 +97,54 @@ def test_count_actions_since_counts_only_that_tool_outcome_and_window(
     _run(migrated_test_db, scenario)
 
 
+async def _fetchval(database: str, sql: str) -> Any:
+    conn = await asyncpg.connect(
+        dsn=_settings(database).database_url.replace(
+            "postgresql+asyncpg://", "postgresql://"
+        )
+    )
+    try:
+        return await conn.fetchval(sql)
+    finally:
+        await conn.close()
+
+
+def test_db_check_constraints_match_model_constants(migrated_test_db: str) -> None:
+    """Drift guard (review note): the migration freezes the CHECK lists, so
+    adding a value to TOOLS/OUTCOMES without a migration altering the
+    constraint fails here instead of silently diverging."""
+    for constraint, values in [
+        ("ck_playground_actions_tool", TOOLS),
+        ("ck_playground_actions_outcome", OUTCOMES),
+    ]:
+        definition: str = asyncio.run(
+            _fetchval(
+                migrated_test_db,
+                "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+                f"WHERE conname = '{constraint}'",
+            )
+        )
+        assert definition is not None, f"{constraint} missing in the database"
+        for value in values:
+            assert f"'{value}'" in definition, f"{value} missing in {constraint}"
+        assert definition.count("::character varying") == len(values), (
+            f"{constraint} holds values the model has dropped"
+        )
+
+
 def test_migration_upgrade_and_downgrade(migrated_test_db: str) -> None:
     cfg = Config(str(_API_DIR / "alembic.ini"))
     cfg.set_main_option("script_location", str(_API_DIR / "migrations"))
     cfg.set_main_option("sqlalchemy.url", _settings(migrated_test_db).database_url)
 
     async def _table_exists() -> bool:
-        conn = await asyncpg.connect(
-            dsn=_settings(migrated_test_db).database_url.replace(
-                "postgresql+asyncpg://", "postgresql://"
+        return bool(
+            await _fetchval(
+                migrated_test_db,
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                "WHERE table_name = 'playground_actions')",
             )
         )
-        try:
-            return bool(
-                await conn.fetchval(
-                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
-                    "WHERE table_name = 'playground_actions')"
-                )
-            )
-        finally:
-            await conn.close()
-
     try:
         command.downgrade(cfg, "-1")
         assert asyncio.run(_table_exists()) is False

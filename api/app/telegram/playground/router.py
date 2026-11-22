@@ -33,6 +33,9 @@ playground_router = APIRouter(
     prefix="/admin/telegram",
     tags=["telegram-playground"],
     dependencies=[Depends(require_admin), Depends(require_playground)],
+    # The public schema reveals nothing: these routes never appear in
+    # openapi.json or /docs, in any environment (the guards still run).
+    include_in_schema=False,
 )
 
 
