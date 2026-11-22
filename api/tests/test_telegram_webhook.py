@@ -7,58 +7,25 @@ exactly once (duplicate deliveries return 200 and do nothing) and marked
 """
 
 import asyncio
-from collections.abc import Callable
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.main import create_app
-from app.settings import Settings, get_settings
+from app.settings import Settings
 from app.telegram.models import TelegramUpdate
 from app.telegram.security import TELEGRAM_SECRET_HEADER
-from tests.conftest import KEY_ONE
+from tests.conftest import KEY_ONE, TELEGRAM_TEST_SECRET
 from tests.telegram_fixtures import FIXTURE_NAMES, load_payload
 
 WEBHOOK = "/integrations/telegram/webhook"
-SECRET = "test-webhook-secret_0123456789"
-OWNER_TELEGRAM_ID = 111111
+SECRET = TELEGRAM_TEST_SECRET
 
 
-@pytest.fixture()
-def webhook_client(
-    monkeypatch: pytest.MonkeyPatch, migrated_test_db: str
-) -> TestClient:
-    """Real app on the per-worker test DB, secret and allowlist configured."""
-    monkeypatch.setenv("API_KEYS", KEY_ONE)
-    monkeypatch.setenv("POSTGRES_DB", migrated_test_db)
-    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", SECRET)
-    monkeypatch.setenv("TELEGRAM_ALLOWED_USER_ID", str(OWNER_TELEGRAM_ID))
-    get_settings.cache_clear()
-    try:
-        with TestClient(create_app()) as client:
-            yield client
-    finally:
-        get_settings.cache_clear()
-
-
-@pytest.fixture(autouse=True)
-def _clean_table(migrated_test_db: str) -> None:
-    """Each test starts from an empty table (the per-worker DB is shared)."""
-
-    async def wipe() -> None:
-        engine = create_async_engine(
-            Settings(api_keys="test-suite", postgres_db=migrated_test_db).database_url
-        )
-        try:
-            async with AsyncSession(engine) as session:
-                await session.execute(TelegramUpdate.__table__.delete())
-                await session.commit()
-        finally:
-            await engine.dispose()
-
-    asyncio.run(wipe())
+@pytest.fixture(name="webhook_client")
+def _webhook_client(telegram_webhook_client: TestClient) -> TestClient:
+    return telegram_webhook_client
 
 
 def _update_rows(worker_db: str) -> list[TelegramUpdate]:

@@ -7,6 +7,7 @@ Telegram at all. There is no behaviour here yet.
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
@@ -15,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.settings import Settings, get_settings
-from app.telegram import repository
+from app.telegram import handlers, repository, routing
 from app.telegram.allowlist import is_allowed
 from app.telegram.inbound import parse_inbound
 from app.telegram.security import require_telegram_secret
@@ -61,6 +62,18 @@ async def receive_update(
         return ack
     if not await repository.claim_update(session, inbound):
         return ack  # duplicate delivery: already handled exactly once
-    # BE-015 inserts dispatch here.
-    await repository.mark_update(session, inbound.update_id, "processed")
+    # Dispatch (BE-015): run the registered handler. The reply is computed
+    # and dropped for now; BE-021 sends it. A handler's failure is recorded
+    # but never returned to Telegram: a non-2xx would retry into the same
+    # failure forever.
+    route = routing.route(inbound)
+    ctx = handlers.HandlerContext(session=session, now=datetime.now(timezone.utc))
+    try:
+        _reply = await handlers.resolve(route.target)(inbound, route, ctx)
+        status = "processed"
+    except Exception:
+        # No update content in the log: only the event name and traceback.
+        logger.exception("telegram.handler_failed")
+        status = "failed"
+    await repository.mark_update(session, inbound.update_id, status, route.target)
     return ack

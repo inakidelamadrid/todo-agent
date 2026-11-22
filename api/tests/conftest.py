@@ -22,6 +22,7 @@ os.environ.setdefault("CLERK_ALLOWED_USER_IDS", OWNER_USER_ID)
 
 import asyncio
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 import asyncpg
@@ -38,6 +39,11 @@ from app.settings import Settings, get_settings
 KEY_ONE = "test-key-1"
 KEY_TWO = "test-key-2"
 PROTECTED_PROBE_PATH = "/__test-protected"
+
+# Telegram webhook tests (BE-008+): the shared client below is configured
+# with these; test modules import them for the header value and expected IDs.
+TELEGRAM_TEST_SECRET = "test-webhook-secret_0123456789"
+TELEGRAM_TEST_OWNER_ID = 111111  # the owner in tests/fixtures/telegram/*.json
 
 _API_DIR = Path(__file__).resolve().parent.parent
 
@@ -73,6 +79,36 @@ def make_client(monkeypatch: pytest.MonkeyPatch) -> Callable[[str], TestClient]:
 @pytest.fixture()
 def client(make_client: Callable[[str], TestClient]) -> TestClient:
     return make_client(f"{KEY_ONE},{KEY_TWO}")
+
+
+@pytest.fixture()
+def clean_telegram_updates(migrated_test_db: str) -> None:
+    """Empty ``telegram_updates`` for one test (the per-worker DB is shared)."""
+    settings = Settings(api_keys="test-suite")
+    asyncio.run(_admin_exec(settings, "DELETE FROM telegram_updates", migrated_test_db))
+
+
+@pytest.fixture()
+def telegram_webhook_client(
+    monkeypatch: pytest.MonkeyPatch,
+    migrated_test_db: str,
+    clean_telegram_updates: None,
+) -> Iterator[TestClient]:
+    """Real app on the per-worker test DB, webhook secret + owner allowlist set.
+
+    Depends on ``clean_telegram_updates`` so every webhook test starts from
+    an empty idempotency table.
+    """
+    monkeypatch.setenv("API_KEYS", KEY_ONE)
+    monkeypatch.setenv("POSTGRES_DB", migrated_test_db)
+    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", TELEGRAM_TEST_SECRET)
+    monkeypatch.setenv("TELEGRAM_ALLOWED_USER_ID", str(TELEGRAM_TEST_OWNER_ID))
+    get_settings.cache_clear()
+    try:
+        with TestClient(create_app()) as test_client:  # lifespan: engine up/down
+            yield test_client
+    finally:
+        get_settings.cache_clear()
 
 
 # ---------------------------------------------------------------------------

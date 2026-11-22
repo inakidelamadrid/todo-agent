@@ -9,17 +9,15 @@ import logging
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import create_app
-from app.settings import get_settings
 from app.telegram.allowlist import is_allowed
 from app.telegram.inbound import InboundUpdate, UpdateKind, to_inbound
 from app.telegram.security import TELEGRAM_SECRET_HEADER
-from tests.conftest import KEY_ONE
+from tests.conftest import TELEGRAM_TEST_OWNER_ID, TELEGRAM_TEST_SECRET
 from tests.telegram_fixtures import load_payload, load_update
 
 WEBHOOK = "/integrations/telegram/webhook"
-SECRET = "test-webhook-secret_0123456789"
-OWNER = 111111
+SECRET = TELEGRAM_TEST_SECRET
+OWNER = TELEGRAM_TEST_OWNER_ID
 
 
 def test_owner_is_allowed() -> None:
@@ -46,19 +44,9 @@ def test_update_without_user_is_not_allowed() -> None:
     assert is_allowed(update, OWNER) is False
 
 
-@pytest.fixture()
-def webhook_client(monkeypatch: pytest.MonkeyPatch, migrated_test_db: str) -> TestClient:
-    """Real app on the per-worker test DB (the owner path claims rows)."""
-    monkeypatch.setenv("API_KEYS", KEY_ONE)
-    monkeypatch.setenv("POSTGRES_DB", migrated_test_db)
-    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", SECRET)
-    monkeypatch.setenv("TELEGRAM_ALLOWED_USER_ID", str(OWNER))
-    get_settings.cache_clear()
-    try:
-        with TestClient(create_app()) as client:
-            yield client
-    finally:
-        get_settings.cache_clear()
+@pytest.fixture(name="webhook_client")
+def _webhook_client(telegram_webhook_client: TestClient) -> TestClient:
+    return telegram_webhook_client
 
 
 def test_webhook_drops_stranger_with_200_and_logs_counter(
