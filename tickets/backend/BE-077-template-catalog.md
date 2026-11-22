@@ -1,9 +1,9 @@
 # BE-077: Template catalog: names and required fields (pure)
 
-- **Status:** todo
+- **Status:** in review
 - **Workspace:** backend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
-- **Assigned agent / harness / model:**
+- **Assigned agent / harness / model:** Engine / Claude Code / claude-opus-5-5
 - **Depends on:** BE-020
 - **Can run in parallel with:** BE-065 to BE-076
 - **Public endpoint?** no

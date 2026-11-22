@@ -1,30 +1,30 @@
-# FE-022: Playground client, part 2: explain, replay, test message
+# FE-022: Playground client, part 2: send test message
 
 - **Status:** todo
 - **Workspace:** frontend
 - **Epic:** [EPIC-008: Telegram integration](../../Epics/EPIC-008-telegram-integration.md) §5.7 Debugger playground
 - **Assigned agent / harness / model:**
-- **Depends on:** FE-021, BE-074, BE-076, BE-079
+- **Depends on:** FE-021, BE-079
 - **Can run in parallel with:** FE-023 to FE-028
-- **Review size:** ~70 lines, 2 files plus tests, ~10 min
+- **Review size:** ~35 lines, 2 files plus tests, ~6 min
 
 ## Goal
 
-Typed client functions exist for the three playground actions, including the one that requires `confirm: true`.
+A typed client function sends a test message: a template and its data, never a recipient.
 
 ## Why this ticket exists
 
-Kept apart from the read-only client so the reviewer sees the side-effecting calls together, and can check that the client never sends `confirm` on its own.
+Kept apart from the read-only client so the reviewer sees the one call that reaches Telegram on its own. Re-scoped on 2026-11-22: explain and replay moved to FE-030 (EPIC-011), and BE-079 now sends immediately instead of queueing.
 
 ## Read first
 
 - `web/src/features/playground/api.ts` and `types.ts` (FE-021).
-- The request and response shapes in BE-072, BE-074, BE-076, BE-079.
+- The request and response shapes in BE-079.
 
 ## Design
 
-- **Pattern:** Typed client functions; the confirmation is an explicit argument, never a default.
-- **Data flow:** `replay(update, { confirmed: true })` → `POST /admin/telegram/replay` with `confirm: true`.
+- **Pattern:** One typed client function; no recipient parameter exists.
+- **Data flow:** `sendTestMessage(template, data)` → `POST /admin/telegram/test-message` → `TestMessageResult`.
 
 ## Packages
 
@@ -34,36 +34,25 @@ None new. Standard library and what is already installed.
 
 **Files**
 
-- `web/src/features/playground/types.ts` (changed):
-  - `ComposedUpdate { kind: 'text' | 'command' | 'photo' | 'document' | 'voice'; text?: string; caption?: string }`
-  - `ExplainStep { name: 'allowlist' | 'idempotency' | 'route'; verdict: 'pass' | 'stop' | 'skipped'; detail: string }`
-  - `RouteExplanation { steps: readonly ExplainStep[]; finalRoute: { kind: string; target: string; arg: string } | null }`
-  - `ReplayResult { updateId: number; status: 'ignored' | 'duplicate' | 'processed' | 'failed'; route: string }`
-  - `TestMessageResult { outboundId: string; status: 'queued' | 'deferred'; scheduledFor: string }`
-- `web/src/features/playground/api.ts` (changed): `listSamples()`, `explain(input: { update: ComposedUpdate } | { sample: string })`, `replay(input, opts: { confirmed: true })`, `sendTestMessage(template, data)`.
-- `validateComposed(c: ComposedUpdate): FieldErrors` (pure, in `types.ts` or `compose.ts`): the same rules as the API (text required for text and command; a command starts with `/`; text ≤ 4096; caption ≤ 1024, only for photo and document), so the form can show errors before sending.
+- `web/src/features/playground/types.ts` (changed): `TestMessageResult { messageId: number }`.
+- `web/src/features/playground/api.ts` (changed): `sendTestMessage(template: string, data: Readonly<Record<string, string>>): Promise<TestMessageResult>`.
 
-`replay` has no overload without `{ confirmed: true }`: the type system makes an unconfirmed call a compile error.
+Errors surface as the existing API error with the server's `detail`: `429` (hourly limit), `409` (Telegram not configured), `502` (Telegram refused), `404` / `422` (template or field).
 
 ## Steps
 
-1. Types and `validateComposed` with tests.
-2. Client functions with tests.
-3. `make web-test`, `make web-build`.
+1. Type and client function with tests.
+2. `make web-test`, `make web-build`.
 
 ## Tests
 
-- `test_validate_composed_rules`: one case per rule.
-- `test_explain_posts_update_or_sample`.
-- `test_replay_sends_confirm_true`.
 - `test_send_test_message_posts_template_and_data_without_recipient`.
-- `test_429_and_409_surface_as_api_error_with_detail`.
+- `test_send_test_message_returns_message_id`.
+- `test_429_409_502_surface_as_api_error_with_detail`.
 
 ## Acceptance criteria
 
-- [ ] The four functions are typed and tested
-- [ ] `replay` cannot be called without `{ confirmed: true }`
-- [ ] `validateComposed` mirrors the API rules
+- [ ] `sendTestMessage` is typed and tested
 - [ ] No client function accepts a recipient
 - [ ] Tests pass (`make web-test`) and the build passes (`make web-build`)
 - [ ] The diff stays within the review size above, or the ticket was split
@@ -76,14 +65,14 @@ None new. Standard library and what is already installed.
 
 Read the diff in this order, and check:
 
-1. `api.ts`: where is `confirm: true` set, and can it be set without the caller saying so?
-2. Do the validation rules match BE-072?
+1. The request body: only `template` and `data`.
 
-Things that should *not* be in the diff: UI, stores.
+Things that should *not* be in the diff: UI, stores, explain or replay (FE-030).
 
 ## Out of scope
 
-- Wiring → FE-026, FE-029.
+- Wiring → FE-029.
+- Explain and replay → FE-030.
 
 ## Notes / log
 

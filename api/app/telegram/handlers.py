@@ -47,7 +47,7 @@ async def _help(update: InboundUpdate, route: Route, ctx: HandlerContext) -> Rep
 
 
 async def _unknown_command(update: InboundUpdate, route: Route, ctx: HandlerContext) -> Reply:
-    return Reply(template="unknown_command")
+    return Reply(template="unknown_command", data={"command": update.command or ""})
 
 
 async def _unsupported(update: InboundUpdate, route: Route, ctx: HandlerContext) -> Reply:
