@@ -20,5 +20,9 @@ __pycache__/
 .impeccable/hook.cache.json
 .impeccable/reference/
 
-# Local human-verification walkthroughs (never committed)
-manual-validations/
+# Local human-verification walkthroughs (never committed), except the
+# completed ones under manual-validations/complete/ which are checked in
+# and are part of the PR review record.
+manual-validations/*
+!manual-validations/complete/
+!manual-validations/complete/*
