@@ -3,6 +3,7 @@
 Functions take a session and do exactly one thing. No HTTP, no FastAPI.
 """
 
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from uuid import UUID
 
@@ -60,6 +61,32 @@ async def create_task(session: AsyncSession, data: TaskCreate) -> Task | ParentP
 async def update_task(session: AsyncSession, task: Task, patch: TaskUpdate) -> Task:
     for field, value in patch.model_dump(exclude_unset=True).items():
         setattr(task, field, value)
+    await session.flush()
+    await session.refresh(task)
+    return task
+
+
+async def apply_status(
+    session: AsyncSession,
+    task: Task,
+    status: TaskStatus,
+    *,
+    snoozed_until: date | None = None,
+) -> Task:
+    now = datetime.now(UTC).replace(tzinfo=None)
+    task.status = status.value
+    if status == TaskStatus.DONE:
+        task.completed_at = now
+    else:
+        task.completed_at = None
+    if status == TaskStatus.DROPPED:
+        task.dropped_at = now
+    else:
+        task.dropped_at = None
+    if status == TaskStatus.SNOOZED:
+        task.snoozed_until = snoozed_until
+    else:
+        task.snoozed_until = None
     await session.flush()
     await session.refresh(task)
     return task

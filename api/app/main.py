@@ -19,6 +19,7 @@ from app.db import build_engine, dispose_engine
 from app.routes import me, public
 from app.security import API_KEY_HEADER_NAME, require_principal, require_user
 from app.settings import clerk_enabled, get_settings
+from app.tasks.router import tasks_router
 from app.telegram.aiogram_sender import open_sender
 from app.telegram.playground.router import playground_router
 from app.telegram.webhook import telegram_webhook_router
@@ -87,6 +88,7 @@ def create_app() -> FastAPI:
     # session) or a machine (API key) through one shared dependency.
     app.include_router(bills_router, dependencies=[Depends(require_principal)])
     app.include_router(payments_router, dependencies=[Depends(require_principal)])
+    app.include_router(tasks_router, dependencies=[Depends(require_principal)])
     # A person, not a script: machines get 403 here (BE-064).
     app.include_router(me.router, dependencies=[Depends(require_user)])
     # Admin-only debugger playground, 404 when the switch is off (BE-068).
