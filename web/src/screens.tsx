@@ -1,5 +1,6 @@
-import { FlaskConical, ReceiptText } from 'lucide-react'
+import { FlaskConical, ListChecks, ReceiptText } from 'lucide-react'
 import { BillsMonthView } from '@/features/bills/components/BillsMonthView'
+import { TaskListPreview } from '@/features/tasks/components/TaskListPreview'
 import { PlaygroundScreen } from '@/features/playground/PlaygroundScreen'
 import type { ScreenDef } from '@/lib/screen'
 
@@ -13,4 +14,5 @@ export const screens: readonly ScreenDef[] = [
     adminOnly: true,
     render: () => <PlaygroundScreen />,
   },
+  { id: 'dev-tasks', label: 'Task list preview', icon: <ListChecks className="size-4" aria-hidden="true" />, devOnly: true, render: () => <TaskListPreview /> },
 ]
