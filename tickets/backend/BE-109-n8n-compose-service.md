@@ -1,6 +1,6 @@
 # BE-109: Self-hosted n8n service in docker-compose
 
-- **Status:** todo
+- **Status:** done
 - **Priority:** 3 (5 = very important … 1 = can hold; see [../README.md](../README.md#priority))
 - **Workspace:** backend
 - **Epic:** [EPIC-003: Brain-dump inbox + "What now?"](../../Epics/EPIC-003-brain-dump-inbox-what-now.md) §5.2 · Milestone M1 ([outline](../../outlines/Phase_1_outline_EPIC-003.md))
@@ -129,3 +129,7 @@ Things that should *not* be in the diff: make targets (BE-110), workflows (BE-11
 - `/healthz` and `wget` exist in the pinned image; step 3 checks and gives the fallback.
 
 ## Notes / log
+
+- Pinned `n8nio/n8n:2.49.8` after checking Docker Hub stable tag.
+- Healthcheck uses `wget` (present in the pinned image; container reached healthy).
+- Verified `make db-up` does not start n8n, the port binds to `127.0.0.1:5678`, and data survives `make n8n-down && make n8n-up` via the named `n8n_data` volume.

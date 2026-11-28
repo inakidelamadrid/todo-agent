@@ -4,6 +4,7 @@ dist/
 # Backend (Python)
 .env
 .env.db
+.env.n8n
 backups/
 .venv/
 __pycache__/

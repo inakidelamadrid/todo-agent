@@ -1,6 +1,6 @@
 # BE-111: RUNBOOK-n8n-setup.md
 
-- **Status:** todo
+- **Status:** done
 - **Priority:** 3 (5 = very important … 1 = can hold; see [../README.md](../README.md#priority))
 - **Workspace:** backend
 - **Epic:** [EPIC-003: Brain-dump inbox + "What now?"](../../Epics/EPIC-003-brain-dump-inbox-what-now.md) §5.2 · Milestone M1 ([outline](../../outlines/Phase_1_outline_EPIC-003.md))
@@ -81,3 +81,7 @@ Things that should *not* be in the diff: workflow JSON (BE-112), compose or Make
 - Production hosting → undecided.
 
 ## Notes / log
+
+- Wrote `RUNBOOK-n8n-setup.md` covering first run, shared secret, LLM credential, import/export, backup, upgrade, troubleshooting and licence.
+- Links to `integrations/n8n/README.md` for the signing contract without repeating it.
+- Followed the first-run steps against the local container created via `make n8n-up`; owner setup screen was reachable at `http://127.0.0.1:5678`.
