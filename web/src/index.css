@@ -216,3 +216,15 @@
 @media (prefers-reduced-motion: reduce) {
   .station-pulse { animation: none; opacity: 0.6; }
 }
+
+/* Task rows: a removed row fades and the rows below close the gap over 200ms (view transitions, TaskList). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -32,7 +32,7 @@ export const AppShell = ({
     <aside className="flex items-center gap-6 bg-rail px-4 py-3 text-rail-foreground md:sticky md:top-0 md:h-dvh md:flex-col md:items-stretch md:gap-8 md:px-5 md:py-7">
       <div className="flex shrink-0 items-center gap-2.5">
         <BrandMark />
-        {/* The mark alone on the narrowest phones, so two nav entries and the account still fit. */}
+        {/* The mark alone on the narrowest phones, so the nav and the account still fit. */}
         <span className="label-caps text-lg tracking-[0.06em] max-[419px]:sr-only">todo-agent</span>
       </div>
       <nav aria-label="Main" className="flex min-w-0 flex-1 gap-1 md:flex-col">
@@ -42,12 +42,13 @@ export const AppShell = ({
             href={item.href}
             aria-current={item.current ? 'page' : undefined}
             className={cn(
-              'relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-ring',
+              'relative flex items-center gap-3 rounded-md px-3 py-2 max-sm:min-h-11 max-sm:min-w-11 max-sm:justify-center text-sm font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-ring',
               item.current ? 'bg-white/8' : 'text-[#C3CDE8] hover:bg-white/5 hover:text-rail-foreground',
             )}
           >
             {item.icon}
-            {item.label}
+            {/* Icon-only on phones, so every nav entry and the account fit the top bar. */}
+            <span className="max-sm:sr-only">{item.label}</span>
             {item.current && <span className="absolute inset-x-3 -bottom-px hidden h-0.5 rounded bg-line-streaming md:block" />}
           </a>
         ))}

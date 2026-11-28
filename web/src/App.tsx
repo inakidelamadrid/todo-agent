@@ -1,29 +1,21 @@
-import { FlaskConical, ReceiptText } from 'lucide-react'
-import { AppShell, type NavItem } from '@/components/AppShell'
+import { AppShell } from '@/components/AppShell'
 import { Toaster } from '@/components/ui/sonner'
 import { AccountControl } from '@/features/auth/AccountControl'
 import { AuthGate } from '@/features/auth/AuthGate'
 import { isAdmin } from '@/features/auth/session'
 import { useSessionStore } from '@/features/auth/useSessionStore'
-import { BillsMonthView } from '@/features/bills/components/BillsMonthView'
 import { RailStatus } from '@/features/bills/components/RailStatus'
-import { PlaygroundScreen } from '@/features/playground/PlaygroundScreen'
-import { type Screen, useHashScreen } from '@/lib/screen'
-
-const navItems = (screen: Screen, admin: boolean): readonly NavItem[] => [
-  { href: '#bills', label: 'Bills', icon: <ReceiptText className="size-4" aria-hidden="true" />, current: screen === 'bills' },
-  ...(admin
-    ? [{ href: '#playground', label: 'Playground', icon: <FlaskConical className="size-4" aria-hidden="true" />, current: screen === 'playground' }]
-    : []),
-]
+import { useHashScreen, visibleNav } from '@/lib/screen'
+import { screens } from '@/screens'
 
 const SignedInApp = () => {
   const admin = useSessionStore((s) => isAdmin(s.me))
-  const screen = useHashScreen(admin)
+  const ctx = { isAdmin: admin, isDev: import.meta.env.DEV }
+  const screen = useHashScreen(screens, ctx)
 
   return (
-    <AppShell items={navItems(screen, admin)} status={<RailStatus />} account={<AccountControl />}>
-      {screen === 'playground' ? <PlaygroundScreen /> : <BillsMonthView />}
+    <AppShell items={visibleNav(screens, ctx, screen.id)} status={<RailStatus />} account={<AccountControl />}>
+      {screen.render()}
     </AppShell>
   )
 }
