@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -56,7 +56,7 @@ class InboxItem(Base):
     currency: Mapped[str | None] = mapped_column(String(CURRENCY_MAX_LEN))
     do_date: Mapped[date | None]
     due_date: Mapped[date | None]
-    snoozed_until: Mapped[date | None] = mapped_column(DateTime)
+    snoozed_until: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

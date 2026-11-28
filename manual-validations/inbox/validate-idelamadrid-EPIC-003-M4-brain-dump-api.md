@@ -72,9 +72,10 @@ key from `api/.env` (`API_KEYS`).
 
 ### Migration
 
-- [ ] `make api-migrate` runs without errors and reports:
-  `Running upgrade 483ebd9b1c91 -> 810dec36a5fd, create dumps and inbox_items`.
-- [ ] The migration is listed by `cd api && uv run alembic history`.
+- [ ] `make api-migrate` runs without errors and reports both:
+  - `Running upgrade 483ebd9b1c91 -> 810dec36a5fd, create dumps and inbox_items`
+  - `Running upgrade 810dec36a5fd -> fc5e5b905e0d, fix inbox_items snoozed_until type to date`
+- [ ] Both migrations are listed by `cd api && uv run alembic history`.
 
 ### Table structure
 
@@ -92,8 +93,9 @@ make db-psql
   `do_date`, `due_date`, `snoozed_until`, `created_at`.
 - [ ] `inbox_items.dump_id` has a foreign key to `dumps(id)` with
   `ON DELETE CASCADE`.
-- [ ] Check constraints exist for `source`, `type`, `status`, `confidence`,
-  and `summary` length.
+- [ ] `inbox_items.snoozed_until` has type `date` (not `timestamp`).
+- [ ] Check constraints exist for `dumps.source`, `inbox_items.type`,
+  `inbox_items.status`, `inbox_items.confidence`, and `summary` length.
 
 ### Cascade delete
 
@@ -119,7 +121,7 @@ SELECT * FROM inbox_items WHERE id = '22222222-2222-2222-2222-222222222222'::uui
 
 ## Automated checks
 
-- [ ] `make api-test` passes (461 tests at the time of writing).
+- [ ] `make api-test` passes.
 - [ ] `cd api && uv run ruff check app/inbox tests/test_inbox` passes.
 
 ---
