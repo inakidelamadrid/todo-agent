@@ -1,6 +1,6 @@
 # BE-084: Task repository: create, update, delete
 
-- **Status:** todo
+- **Status:** done
 - **Priority:** 3 (5 = very important … 1 = can hold; see [../README.md](../README.md#priority))
 - **Workspace:** backend
 - **Epic:** [EPIC-003: Brain-dump inbox + "What now?"](../../Epics/EPIC-003-brain-dump-inbox-what-now.md) §5.4 · Milestone M2 ([outline](../../outlines/Phase_1_outline_EPIC-003.md))
