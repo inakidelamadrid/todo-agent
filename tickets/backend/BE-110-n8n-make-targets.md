@@ -1,6 +1,6 @@
 # BE-110: Make targets to start, stop and check n8n
 
-- **Status:** todo
+- **Status:** done
 - **Priority:** 3 (5 = very important … 1 = can hold; see [../README.md](../README.md#priority))
 - **Workspace:** backend
 - **Epic:** [EPIC-003: Brain-dump inbox + "What now?"](../../Epics/EPIC-003-brain-dump-inbox-what-now.md) §5.2 · Milestone M1 ([outline](../../outlines/Phase_1_outline_EPIC-003.md))
@@ -97,3 +97,7 @@ Things that should *not* be in the diff: compose changes (BE-109), workflow impo
 - Import, export and backup commands → documented in BE-111.
 
 ## Notes / log
+
+- Added `check-n8n-env`, `n8n-up`, `n8n-down`, `n8n-status`, `n8n-logs` and `n8n-check`.
+- `n8n-check` reads `N8N_PORT` from `.env.n8n` but tolerates a missing file by defaulting to 5678.
+- Verified `make n8n-up` refuses a missing/weak key, starts healthy, and `make n8n-check` prints three ✓ lines; also verified the failure output when n8n is stopped.
