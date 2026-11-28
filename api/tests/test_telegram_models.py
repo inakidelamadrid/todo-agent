@@ -9,6 +9,7 @@ from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
 import pytest
+from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
@@ -26,6 +27,17 @@ EXPECTED_COLUMNS = {
     "status",
     "received_at",
 }
+
+
+@pytest.fixture(autouse=True)
+def _clean_telegram_updates(migrated_test_db: str) -> None:
+    """Each test starts from an empty telegram_updates table."""
+
+    async def wipe(session: AsyncSession) -> None:
+        await session.execute(delete(TelegramUpdate))
+        await session.commit()
+
+    _run(migrated_test_db, wipe)
 
 
 def _run(database: str, scenario: Callable[[AsyncSession], Awaitable[T]]) -> T:
