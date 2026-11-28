@@ -9,12 +9,17 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
 from app.inbox.schemas import Confidence, DumpSource, ItemStatus, ItemType
+from app.tasks.schemas import Energy, TaskContext, TaskSize
 
 RAW_TEXT_MAX = 4000
 SUMMARY_MAX = 120
 NOTE_BODY_MAX = 2000
 CURRENCY_MAX_LEN = 3
 ITEM_STATUS_MAX = 12
+FIRST_STEP_MAX = 200
+SIZE_MAX = 2
+ENERGY_MAX = 10
+CONTEXT_MAX = 10
 
 
 class Dump(Base):
@@ -51,6 +56,10 @@ class InboxItem(Base):
     status: Mapped[str] = mapped_column(String(ITEM_STATUS_MAX), default=ItemStatus.NEW.value)
     summary: Mapped[str] = mapped_column(String(SUMMARY_MAX))
     confidence: Mapped[str] = mapped_column(String(10))
+    size: Mapped[str | None] = mapped_column(String(SIZE_MAX))
+    energy: Mapped[str | None] = mapped_column(String(ENERGY_MAX))
+    context: Mapped[str | None] = mapped_column(String(CONTEXT_MAX))
+    first_step: Mapped[str | None] = mapped_column(String(FIRST_STEP_MAX))
     body: Mapped[str | None] = mapped_column(String(NOTE_BODY_MAX))
     amount_cents: Mapped[int | None]
     currency: Mapped[str | None] = mapped_column(String(CURRENCY_MAX_LEN))
@@ -77,6 +86,22 @@ class InboxItem(Base):
         CheckConstraint(
             f"char_length(summary) BETWEEN 1 AND {SUMMARY_MAX}",
             name="ck_inbox_items_summary_len",
+        ),
+        CheckConstraint(
+            f"size IS NULL OR size IN {tuple(s.value for s in TaskSize)}",
+            name="ck_inbox_items_size",
+        ),
+        CheckConstraint(
+            f"energy IS NULL OR energy IN {tuple(e.value for e in Energy)}",
+            name="ck_inbox_items_energy",
+        ),
+        CheckConstraint(
+            f"context IS NULL OR context IN {tuple(c.value for c in TaskContext)}",
+            name="ck_inbox_items_context",
+        ),
+        CheckConstraint(
+            f"first_step IS NULL OR char_length(first_step) <= {FIRST_STEP_MAX}",
+            name="ck_inbox_items_first_step_len",
         ),
         Index("ix_inbox_items_dump_id", "dump_id"),
         Index("ix_inbox_items_created_at", "created_at"),

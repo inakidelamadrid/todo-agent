@@ -42,6 +42,8 @@ key from `api/.env` (`API_KEYS`).
 
 - [ ] `task`, `reminder`, `note`, and `expense` candidates all validate
   when their required fields are present.
+- [ ] `InboxItemOut` includes `size`, `energy`, `context`, and
+  `firstStep` for task items.
 - [ ] `POST /inbox/dumps` payload looks right in `/docs` and uses
   camelCase on the wire.
 
@@ -53,6 +55,17 @@ key from `api/.env` (`API_KEYS`).
 
 - [ ] `tests/test_inbox/test_parser.py` passes.
 - [ ] `fake_parser(...)` returns the canned items regardless of input.
+
+### drafts_from_result
+
+- [ ] `tests/test_inbox/test_domain.py` passes.
+- [ ] For a `task` candidate, the draft contains `size`, `energy`,
+  `context`, `doDate`, `dueDate`, and `firstStep`.
+- [ ] For a `reminder` candidate, the draft contains `doDate`.
+- [ ] For a `note` candidate, the draft contains `body`.
+- [ ] For an `expense` candidate, the draft contains `amountCents` and
+  `currency`.
+- [ ] Every key in every draft is an `InboxItem` column.
 
 ### Unconfigured parser (fallback behaviour)
 
@@ -72,10 +85,11 @@ key from `api/.env` (`API_KEYS`).
 
 ### Migration
 
-- [ ] `make api-migrate` runs without errors and reports both:
+- [ ] `make api-migrate` runs without errors and reports all three:
   - `Running upgrade 483ebd9b1c91 -> 810dec36a5fd, create dumps and inbox_items`
   - `Running upgrade 810dec36a5fd -> fc5e5b905e0d, fix inbox_items snoozed_until type to date`
-- [ ] Both migrations are listed by `cd api && uv run alembic history`.
+  - `Running upgrade fc5e5b905e0d -> 40bb439f8e73, add inbox_items task triage columns`
+- [ ] All three migrations are listed by `cd api && uv run alembic history`.
 
 ### Table structure
 
@@ -89,13 +103,43 @@ make db-psql
 
 - [ ] `dumps` has columns: `id`, `raw_text`, `source`, `created_at`.
 - [ ] `inbox_items` has columns: `id`, `dump_id`, `type`, `status`,
-  `summary`, `confidence`, `body`, `amount_cents`, `currency`,
-  `do_date`, `due_date`, `snoozed_until`, `created_at`.
+  `summary`, `confidence`, `size`, `energy`, `context`, `first_step`,
+  `body`, `amount_cents`, `currency`, `do_date`, `due_date`,
+  `snoozed_until`, `created_at`.
 - [ ] `inbox_items.dump_id` has a foreign key to `dumps(id)` with
   `ON DELETE CASCADE`.
 - [ ] `inbox_items.snoozed_until` has type `date` (not `timestamp`).
 - [ ] Check constraints exist for `dumps.source`, `inbox_items.type`,
-  `inbox_items.status`, `inbox_items.confidence`, and `summary` length.
+  `inbox_items.status`, `inbox_items.confidence`, `inbox_items.size`,
+  `inbox_items.energy`, `inbox_items.context`, and `summary`/`first_step`
+  length.
+
+### Task triage columns
+
+In `make db-psql`:
+
+```sql
+INSERT INTO dumps (id, raw_text, source)
+VALUES ('33333333-3333-3333-3333-333333333333'::uuid, 'gym 600', 'web');
+
+INSERT INTO inbox_items (
+  id, dump_id, type, status, summary, confidence,
+  size, energy, context, first_step
+)
+VALUES (
+  '44444444-4444-4444-4444-444444444444'::uuid,
+  '33333333-3333-3333-3333-333333333333'::uuid,
+  'task', 'new', 'Go to gym', 'high',
+  'S', 'low', 'errand', 'Pack bag'
+);
+
+SELECT size, energy, context, first_step FROM inbox_items
+WHERE id = '44444444-4444-4444-4444-444444444444'::uuid;
+```
+
+- [ ] The row returns `size=S`, `energy=low`, `context=errand`,
+  `first_step=Pack bag`.
+- [ ] Inserting `size='XXL'` violates the check constraint.
 
 ### Cascade delete
 

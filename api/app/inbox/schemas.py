@@ -132,6 +132,10 @@ class InboxItemOut(_CamelModel):
     status: ItemStatus
     summary: str
     confidence: Confidence
+    size: TaskSize | None
+    energy: Energy | None
+    context: TaskContext | None
+    first_step: str | None
     body: str | None
     amount_cents: int | None
     currency: str | None
