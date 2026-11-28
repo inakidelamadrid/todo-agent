@@ -20,5 +20,3 @@ __pycache__/
 .impeccable/hook.cache.json
 .impeccable/reference/
 
-# Local human-verification walkthroughs (never committed)
-manual-validations/
