@@ -65,6 +65,7 @@ One model, shared by frontend and backend. Change both sides together.
 - Security comes first in every backend decision.
 - **Every endpoint requires credentials by default** (an owner session token or an API key, see Authentication). An endpoint is public only when I explicitly say to make it public. Today `/health` and `/ping` are open, and `POST /integrations/telegram/webhook` is public behind `require_telegram_secret` (`X-Telegram-Bot-Api-Secret-Token`, PR #37).
 - Enforce credentials via the shared FastAPI dependencies in `api/app/security.py`, not ad-hoc checks per route: `require_principal` (person or machine), `require_user` (person only), and `require_admin` (admin user in `ADMIN_USER_IDS`, PR #33).
+- Apply the shared auth dependency once, in `api/app/main.py` when mounting the router, not on each router and not on each route. Bills and payments already do this. Do not duplicate it with `dependencies=[Depends(require_principal)]` inside the router.
 - Never hardcode keys; load them from environment variables.
 
 ## Authentication (EPIC-009)
